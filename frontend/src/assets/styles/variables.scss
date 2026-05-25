@@ -1,0 +1,82 @@
+// ─── Colors ─────────────────────────────────────────────────────────────────────
+// 主色 - 绿色主题
+$primary: #00b96b;
+$primary-soft: #52c41a;
+$primary-deep: #00995c;
+$on-primary: #ffffff;
+
+// 辅助色
+$secondary: #2c3e50;
+$accent: #1890ff;
+
+// 中性色
+$ink: #2c3e50;
+$body: #5a6c7d;
+$mute: #95a5a6;
+
+$hairline: #ecf0f1;
+$hairline-soft: #bdc3c7;
+
+$canvas: #fafafa;
+$canvas-soft: #f5f5f5;
+$canvas-light: #f0fff4;
+
+// 背景色
+$bg-warm: #fafafa;
+$bg-cream: #fafafa;
+
+// ─── Rounded ────────────────────────────────────────────────────────────────────
+$rounded-sm: 6px;
+$rounded-md: 8px;
+$rounded-lg: 12px;
+$rounded-xl: 16px;
+$rounded-pill: 24px;
+
+// ─── Spacing ────────────────────────────────────────────────────────────────────
+$spacing-xxs: 2px;
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+$spacing-xl: 12px;
+$spacing-2xl: 24px;
+$spacing-3xl: 28px;
+$spacing-4xl: 32px;
+$spacing-5xl: 40px;
+$spacing-6xl: 48px;
+
+// ─── Typography ──────────────────────────────────────────────────────────────────
+// 使用有个性的字体组合，避免Inter/Roboto
+$font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+$font-heading: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+$font-mono: 'SF Mono', 'Consolas', monospace;
+
+// 行高 - 使用更舒适的阅读体验
+$line-height-tight: 1.4;
+$line-height-base: 1.7;
+$line-height-relaxed: 1.85;
+
+// 字重
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Display
+$display-lg: 36px;
+$display-md: 24px;
+$display-sm: 20px;
+
+// Body
+$body-xl: 20px;
+$body-lg: 18px;
+$body-md: 16px;
+$body-sm: 14px;
+$caption: 12px;
+
+// ─── Shadows ────────────────────────────────────────────────────────────────────
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+// ─── Transitions ────────────────────────────────────────────────────────────────
+$transition-fast: 150ms ease;
+$transition-base: 250ms ease;

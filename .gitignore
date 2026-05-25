@@ -1,0 +1,147 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.lcov
+
+# Production
+build/
+dist/
+out/
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Auto-generated files
+frontend/src/auto-imports.d.ts
+frontend/src/components.d.ts
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mtj.tmp/
+hs_err_pid*
+replay_pid*
+target/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Spring Boot
+*.pid
+
+# React Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-report/
+
+# Metro
+.metro-health-check*
+
+# Android
+*.iml
+.gradle
+local.properties
+/android/app/debug
+/android/app/release
+/android/app/profile
+/android/.idea/
+/android/.settings/
+/android/.classpath
+/android/.project
+/android/.settings/
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/captures/
+/android/gradle/
+/android/gradlew
+/android/gradlew.bat
+/android/.cxx/
+/android/.externalNativeBuild/
+/android/.idea/workspace.xml
+/android/.idea/libraries
+
+# iOS
+*.mode1v3
+*.mode2v3
+*.moved-aside
+*.pbxuser
+*.perspectivev3
+**/*sync/
+.sconsign.dblite
+.tags*
+**/.vagrant/
+**/DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+**/Pods/
+**/.symlinks/
+profile
+*.xcarchive
+**/*.xcodeproj/*
+!**/*.xcodeproj/project.pbxproj
+!**/*.xcodeproj/xcshareddata/
+!**/*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# OS
+Thumbs.db

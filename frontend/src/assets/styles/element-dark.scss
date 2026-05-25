@@ -1,0 +1,72 @@
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: (
+    'primary': (
+      'base': #1a7f64,
+    ),
+  ),
+  $bg-color: (
+    'page': #ffffff,
+    '': #f5f5f5,
+    'overlay': #ffffff,
+  ),
+  $text-color: (
+    'primary': #1a1a1a,
+    'regular': #666666,
+    'secondary': #999999,
+    'placeholder': #999999,
+  ),
+  $border-color: (
+    '': #e5e5e5,
+    'light': #e5e5e5,
+    'lighter': #e5e5e5,
+    'dark': #d9d9d9,
+  ),
+  $fill-color: (
+    '': #f5f5f5,
+    'light': #f5f5f5,
+    'lighter': #ffffff,
+    'blank': #ffffff,
+  ),
+  $font-size: (
+    'extra-large': 20px,
+    'large': 18px,
+    'medium': 16px,
+    'base': 14px,
+    'small': 12px,
+    'extra-small': 12px,
+  ),
+  $border-radius: (
+    'base': 6px,
+    'small': 4px,
+    'round': 9999px,
+  ),
+  $button: (
+    'border-radius': 6px,
+    'font-weight': 600,
+  ),
+  $input: (
+    'border-radius': 6px,
+    'bg-color': #ffffff,
+    'border-color': #e5e5e5,
+    'text-color': #1a1a1a,
+    'placeholder-color': #999999,
+  ),
+  $card: (
+    'border-radius': 8px,
+    'bg-color': #ffffff,
+    'border-color': #e5e5e5,
+  ),
+  $table: (
+    'bg-color': #ffffff,
+    'tr-bg-color': #ffffff,
+    'header-bg-color': #f5f5f5,
+    'header-text-color': #1a1a1a,
+    'text-color': #666666,
+    'border-color': #e5e5e5,
+  ),
+  $tag: (
+    'border-radius': 9999px,
+  ),
+);
+
+@use "element-plus/theme-chalk/src/index.scss" as *;

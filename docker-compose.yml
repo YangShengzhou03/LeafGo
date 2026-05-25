@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: leafgo-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: leafgo
+      MYSQL_USER: leafgo
+      MYSQL_PASSWORD: leafgo123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./data.sql:/docker-entrypoint-initdb.d/data.sql
+    networks:
+      - leafgo-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: leafgo-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - leafgo-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: leafgo-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/leafgo
+      SPRING_DATASOURCE_USERNAME: leafgo
+      SPRING_DATASOURCE_PASSWORD: leafgo123
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      JWT_SECRET: your-secret-key-change-in-production
+      JWT_EXPIRATION: 86400000
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - leafgo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: leafgo-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - leafgo-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: leafgo-nginx
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - leafgo-network
+
+volumes:
+  mariadb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  leafgo-network:
+    driver: bridge
