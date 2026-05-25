@@ -38,12 +38,12 @@
         <template #default="{ row }">
           <el-button type="primary" text size="small" @click="handleEdit(row)"> 编辑 </el-button>
           <el-button
-            :type="row.status === 'active' ? 'warning' : 'success'"
+            :type="row.status === 'ACTIVE' ? 'warning' : 'success'"
             text
             size="small"
             @click="toggleStatus(row)"
           >
-            {{ row.status === 'active' ? '关闭' : '开启' }}
+            {{ row.status === 'ACTIVE' ? '关闭' : '开启' }}
           </el-button>
           <el-button type="danger" text size="small" @click="handleDelete(row)"> 删除 </el-button>
         </template>
@@ -111,7 +111,7 @@ const handleEdit = (job: Job): void => {
 }
 
 const toggleStatus = async (job: Job): Promise<void> => {
-  const newStatus = job.status === 'active' ? 'closed' : 'active'
+  const newStatus = job.status === 'ACTIVE' ? 'closed' : 'active'
   await jobApi.updateJob(job.id, { status: newStatus } as Partial<Job>)
   ElMessage.success('状态更新成功')
   fetchJobs()
@@ -129,21 +129,23 @@ const handleDelete = async (job: Job): Promise<void> => {
 type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
 
 const getStatusType = (status: string): TagType => {
+  const s = status.toLowerCase()
   const types: Record<string, TagType> = {
     active: 'success',
     closed: 'info',
     draft: 'warning',
   }
-  return types[status] || 'info'
+  return types[s] || 'info'
 }
 
 const getStatusText = (status: string): string => {
+  const s = status.toLowerCase()
   const texts: Record<string, string> = {
     active: '招聘中',
     closed: '已关闭',
     draft: '草稿',
   }
-  return texts[status] || status
+  return texts[s] || status
 }
 
 const formatTime = (time: string): string => {

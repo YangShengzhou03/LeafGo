@@ -28,8 +28,8 @@
       </el-table-column>
       <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }">
-          <el-tag :type="row.status === 'active' ? 'success' : 'danger'">
-            {{ row.status === 'active' ? '正常' : '禁用' }}
+          <el-tag :type="row.status === 'ACTIVE' ? 'success' : 'danger'">
+            {{ row.status === 'ACTIVE' ? '正常' : '禁用' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -41,14 +41,14 @@
       <el-table-column label="操作" fixed="right" width="200">
         <template #default="{ row }">
           <el-button type="primary" text size="small">查看</el-button>
-          <el-button
-            :type="row.status === 'active' ? 'danger' : 'success'"
-            text
-            size="small"
-            @click="toggleStatus(row)"
-          >
-            {{ row.status === 'active' ? '禁用' : '启用' }}
-          </el-button>
+            <el-button
+              :type="row.status === 'ACTIVE' ? 'danger' : 'success'"
+              text
+              size="small"
+              @click="toggleStatus(row)"
+            >
+              {{ row.status === 'ACTIVE' ? '禁用' : '启用' }}
+            </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -66,13 +66,15 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { adminApi } from '@/api/admin'
+import type { User } from '@/types'
+import dayjs from 'dayjs'
+
 defineOptions({
   name: 'AdminUsers',
 })
-import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import type { User } from '@/types'
-import dayjs from 'dayjs'
 
 const loading = ref(false)
 const searchKeyword = ref('')
@@ -84,20 +86,13 @@ const pageSize = ref(10)
 const fetchUsers = async (): Promise<void> => {
   loading.value = true
   try {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    users.value = [
-      {
-        id: 1,
-        username: '张三',
-        email: 'zhangsan@example.com',
-        phone: '13800138001',
-        userType: 'job_seeker',
-        status: 'active',
-        createdAt: '2024-01-01 10:00:00',
-        updatedAt: '2024-01-01 10:00:00',
-      },
-    ]
-    total.value = 1
+    const data = await adminApi.getUsers({
+      page: currentPage.value,
+      size: pageSize.value,
+      keyword: searchKeyword.value || undefined,
+    })
+    users.value = data.content
+    total.value = data.totalElements
   } finally {
     loading.value = false
   }
@@ -113,9 +108,14 @@ const handlePageChange = (page: number): void => {
   fetchUsers()
 }
 
-const toggleStatus = (_user: User): void => {
-  ElMessage.success('状态更新成功')
-  fetchUsers()
+const toggleStatus = async (user: User): Promise<void> => {
+  try {
+    await adminApi.toggleUserStatus(user.id)
+    ElMessage.success('状态更新成功')
+    fetchUsers()
+  } catch {
+    ElMessage.error('操作失败')
+  }
 }
 
 const formatTime = (time: string): string => {

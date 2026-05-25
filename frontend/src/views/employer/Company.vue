@@ -18,7 +18,7 @@
       <el-form-item label="企业Logo">
         <el-upload
           class="logo-uploader"
-          action="/api/v1/upload"
+          action="http://localhost:8081/upload"
           :show-file-list="false"
           :on-success="handleLogoSuccess"
         >
@@ -85,11 +85,10 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { companyApi } from '@/api'
 import type { Company } from '@/types'
-import { useUserStore } from '@/store/user'
 
-const userStore = useUserStore()
 const companyFormRef = ref<FormInstance>()
 const submitting = ref(false)
+const companyId = ref<number | null>(null)
 
 const companyForm = reactive({
   name: '',
@@ -115,8 +114,11 @@ const handleLogoSuccess = (response: { data: string }): void => {
 
 const fetchCompanyInfo = async (): Promise<void> => {
   try {
-    const company = await companyApi.getCompanyDetail(userStore.userInfo!.id)
-    Object.assign(companyForm, company)
+    const company = await companyApi.getMyCompany()
+    if (company) {
+      companyId.value = company.id
+      Object.assign(companyForm, company)
+    }
   } catch {
     // 暂无企业信息
   }
@@ -129,7 +131,11 @@ const handleSubmit = async (): Promise<void> => {
     if (valid) {
       submitting.value = true
       try {
-        await companyApi.updateCompany(userStore.userInfo!.id, companyForm as Partial<Company>)
+        if (!companyId.value) {
+          ElMessage.error('企业信息不存在')
+          return
+        }
+        await companyApi.updateCompany(companyId.value, companyForm as Partial<Company>)
         ElMessage.success('保存成功')
       } finally {
         submitting.value = false

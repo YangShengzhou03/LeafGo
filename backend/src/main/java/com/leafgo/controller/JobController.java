@@ -1,7 +1,10 @@
 package com.leafgo.controller;
 
+import com.leafgo.entity.Company;
 import com.leafgo.entity.Job;
+import com.leafgo.repository.CompanyRepository;
 import com.leafgo.repository.JobRepository;
+import com.leafgo.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +22,7 @@ import java.util.Map;
 public class JobController {
 
     private final JobRepository jobRepository;
+    private final CompanyRepository companyRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getJobs(
@@ -31,7 +35,7 @@ public class JobController {
             @RequestParam(required = false) String experience,
             @RequestParam(required = false) String education) {
 
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Job> jobPage = jobRepository.searchJobs(keyword, location, jobType, salary, experience, education, pageable);
 
         Map<String, Object> result = new HashMap<>();
@@ -55,7 +59,7 @@ public class JobController {
             @RequestParam(required = false) String experience,
             @RequestParam(required = false) String education) {
 
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Job> jobPage = jobRepository.searchJobs(keyword, location, jobType, salary, experience, education, pageable);
 
         Map<String, Object> result = new HashMap<>();
@@ -73,13 +77,26 @@ public class JobController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("请先登录"));
+        }
 
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Job> jobPage;
-        if (status != null && !status.isEmpty()) {
-            jobPage = jobRepository.findByStatus(Job.JobStatus.valueOf(status.toUpperCase()), pageable);
+
+        Company company = companyRepository.findByUserId(userId).orElse(null);
+        if (company == null) {
+            jobPage = Page.empty();
+        } else if (status != null && !status.isEmpty()) {
+            try {
+                Job.JobStatus jobStatus = Job.JobStatus.valueOf(status.toUpperCase());
+                jobPage = jobRepository.findByCompanyIdAndStatus(company.getId(), jobStatus, pageable);
+            } catch (IllegalArgumentException e) {
+                jobPage = jobRepository.findByCompanyId(company.getId(), pageable);
+            }
         } else {
-            jobPage = jobRepository.findAll(pageable);
+            jobPage = jobRepository.findByCompanyId(company.getId(), pageable);
         }
 
         Map<String, Object> result = new HashMap<>();
@@ -101,6 +118,15 @@ public class JobController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Job>> createJob(@RequestBody Job job) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("请先登录"));
+        }
+        Company company = companyRepository.findByUserId(userId).orElse(null);
+        if (company == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("请先完善企业信息"));
+        }
+        job.setCompanyId(company.getId());
         Job savedJob = jobRepository.save(job);
         return ResponseEntity.ok(ApiResponse.success("职位创建成功", savedJob));
     }

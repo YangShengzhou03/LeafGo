@@ -13,10 +13,10 @@ export const useUserStore = defineStore('user', () => {
   const isEmployer = computed(() => userInfo.value?.userType === 'employer')
 
   const login = async (
-    email: string,
-    password: string
+    phone: string,
+    code: string
   ): Promise<{ userId: number; token: string; userType: string }> => {
-    const data = await authApi.login({ email, password })
+    const data = await authApi.login({ phone, code })
     token.value = data.token
     localStorage.setItem('token', data.token)
     await fetchUserInfo(data.userId)
@@ -25,8 +25,8 @@ export const useUserStore = defineStore('user', () => {
 
   const register = async (data: {
     username: string
-    email: string
-    password: string
+    phone: string
+    code: string
     userType: 'job_seeker' | 'employer'
   }): Promise<{ userId: number; token: string }> => {
     const res = await authApi.register(data)

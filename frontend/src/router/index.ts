@@ -123,6 +123,11 @@ const routes: RouteRecordRaw[] = [
         name: 'SeekerApplications',
         component: () => import('@/views/seeker/Applications.vue'),
       },
+      {
+        path: 'profile',
+        name: 'SeekerProfile',
+        component: () => import('@/views/seeker/Profile.vue'),
+      },
     ],
   },
   {

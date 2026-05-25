@@ -50,6 +50,9 @@ public class Job {
     @Column(columnDefinition = "TEXT")
     private String benefits;
 
+    @Column(columnDefinition = "TEXT")
+    private String tags;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private JobStatus status = JobStatus.ACTIVE;

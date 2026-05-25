@@ -234,7 +234,7 @@ const getCompanyInitial = (job: Job): string => {
 const fetchEnterprises = async (): Promise<void> => {
   try {
     enterpriseLoading.value = true
-    const result = await companyApi.getCompanyList({ page: 0, size: 4 })
+    const result = await companyApi.getCompanyList({ page: 1, size: 4 })
     enterprises.value = result.content.map((company) => ({
       ...company,
       jobCount: company.jobCount || Math.floor(Math.random() * 50) + 1,

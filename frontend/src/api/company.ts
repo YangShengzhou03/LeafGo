@@ -11,6 +11,10 @@ export const companyApi = {
     return request.get('/companies', { params })
   },
 
+  getMyCompany(): Promise<Company | null> {
+    return request.get('/companies/my')
+  },
+
   getCompanyDetail(companyId: number): Promise<Company> {
     return request.get(`/companies/${companyId}`)
   },

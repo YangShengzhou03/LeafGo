@@ -4,6 +4,7 @@ import com.leafgo.entity.Company;
 import com.leafgo.entity.Job;
 import com.leafgo.repository.CompanyRepository;
 import com.leafgo.repository.JobRepository;
+import com.leafgo.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,7 +31,7 @@ public class CompanyController {
             @RequestParam(required = false) String industry,
             @RequestParam(required = false) String keyword) {
 
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Company> companyPage;
 
         if (keyword != null && !keyword.isEmpty()) {
@@ -49,6 +50,17 @@ public class CompanyController {
         result.put("number", companyPage.getNumber() + 1);
 
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<Company>> getMyCompany() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("请先登录"));
+        }
+        return companyRepository.findByUserId(userId)
+                .map(company -> ResponseEntity.ok(ApiResponse.success(company)))
+                .orElse(ResponseEntity.ok(ApiResponse.success(null)));
     }
 
     @GetMapping("/{id}")
@@ -78,7 +90,7 @@ public class CompanyController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Job> jobPage = jobRepository.findByCompanyId(id, pageable);
 
         Map<String, Object> result = new HashMap<>();

@@ -1,12 +1,12 @@
 import { request } from '@/utils/request'
-import type { LoginRequest, RegisterRequest, User } from '@/types'
+import type { User } from '@/types'
 
 export const authApi = {
-  login(data: LoginRequest): Promise<{ userId: number; token: string; userType: string }> {
+  login(data: { phone: string; code: string }): Promise<{ userId: number; token: string; userType: string }> {
     return request.post('/auth/login', data)
   },
 
-  register(data: RegisterRequest): Promise<{ userId: number; token: string }> {
+  register(data: { username: string; phone: string; code: string; userType: string }): Promise<{ userId: number; token: string }> {
     return request.post('/auth/register', data)
   },
 

@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
     boolean existsByPhone(String phone);
+
+    org.springframework.data.domain.Page<User> findByUsernameContaining(String keyword, org.springframework.data.domain.Pageable pageable);
 }

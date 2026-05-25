@@ -122,23 +122,25 @@ const fetchRecentApplications = async (): Promise<void> => {
 type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
 
 const getStatusType = (status: string): TagType => {
+  const s = status.toLowerCase()
   const types: Record<string, TagType> = {
     pending: 'info',
     viewed: 'warning',
     interview: 'success',
     rejected: 'danger',
   }
-  return types[status] || 'info'
+  return types[s] || 'info'
 }
 
 const getStatusText = (status: string): string => {
+  const s = status.toLowerCase()
   const texts: Record<string, string> = {
     pending: '待查看',
     viewed: '已查看',
     interview: '面试',
     rejected: '已拒绝',
   }
-  return texts[status] || status
+  return texts[s] || status
 }
 
 const formatTime = (time: string): string => {

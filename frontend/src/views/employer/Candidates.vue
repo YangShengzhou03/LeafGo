@@ -41,7 +41,7 @@
             text
             size="small"
             @click="updateStatus(row, 'interview')"
-            v-if="row.status === 'pending' || row.status === 'viewed'"
+            v-if="row.status === 'PENDING' || row.status === 'VIEWED'"
           >
             邀请面试
           </el-button>
@@ -50,7 +50,7 @@
             text
             size="small"
             @click="updateStatus(row, 'rejected')"
-            v-if="row.status !== 'rejected'"
+            v-if="row.status !== 'REJECTED'"
           >
             拒绝
           </el-button>
@@ -67,18 +67,75 @@
         @current-change="handlePageChange"
       />
     </div>
+
+    <el-dialog
+      v-model="resumeDialogVisible"
+      :title="`${resumeData?.name || ''} 的简历`"
+      width="700px"
+    >
+      <div v-if="resumeLoading" v-loading="resumeLoading" style="height: 200px" />
+      <div v-else-if="resumeData" class="resume-detail">
+        <div class="resume-section">
+          <h3>基本信息</h3>
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="姓名">{{ resumeData.name }}</el-descriptions-item>
+            <el-descriptions-item label="手机号">{{ resumeData.phone }}</el-descriptions-item>
+            <el-descriptions-item label="邮箱">{{ resumeData.email }}</el-descriptions-item>
+          </el-descriptions>
+        </div>
+
+        <div class="resume-section" v-if="resumeData.selfIntroduction">
+          <h3>自我介绍</h3>
+          <p class="resume-text">{{ resumeData.selfIntroduction }}</p>
+        </div>
+
+        <div class="resume-section" v-if="parsedEducation.length > 0">
+          <h3>教育经历</h3>
+          <div v-for="(edu, index) in parsedEducation" :key="index" class="resume-item">
+            <div class="item-header">{{ edu.school }} · {{ edu.major }}</div>
+            <div class="item-meta">{{ edu.degree }} · {{ edu.startDate }} - {{ edu.endDate }}</div>
+          </div>
+        </div>
+
+        <div class="resume-section" v-if="parsedWorkExperience.length > 0">
+          <h3>工作经历</h3>
+          <div v-for="(work, index) in parsedWorkExperience" :key="index" class="resume-item">
+            <div class="item-header">{{ work.company }} · {{ work.position }}</div>
+            <div class="item-desc">{{ work.description }}</div>
+          </div>
+        </div>
+
+        <div class="resume-section" v-if="parsedSkills.length > 0">
+          <h3>技能特长</h3>
+          <div class="skills-list">
+            <el-tag
+              v-for="(skill, index) in parsedSkills"
+              :key="index"
+              type="success"
+              style="margin: 4px"
+            >
+              {{ skill.name }} · {{ skill.level }}
+            </el-tag>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <el-empty description="暂无简历信息" />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import { applicationApi, resumeApi } from '@/api'
+import type { Application, Resume, Education, WorkExperience, Skill } from '@/types'
+import dayjs from 'dayjs'
+
 defineOptions({
   name: 'EmployerCandidates',
 })
-import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { applicationApi } from '@/api'
-import type { Application } from '@/types'
-import dayjs from 'dayjs'
 
 const loading = ref(false)
 const candidates = ref<Application[]>([])
@@ -86,6 +143,43 @@ const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const statusFilter = ref('')
+
+const resumeDialogVisible = ref(false)
+const resumeLoading = ref(false)
+const resumeData = ref<Resume | null>(null)
+
+const parsedEducation = computed<Education[]>(() => {
+  if (!resumeData.value?.education) return []
+  try {
+    return typeof resumeData.value.education === 'string'
+      ? JSON.parse(resumeData.value.education)
+      : resumeData.value.education
+  } catch {
+    return []
+  }
+})
+
+const parsedWorkExperience = computed<WorkExperience[]>(() => {
+  if (!resumeData.value?.workExperience) return []
+  try {
+    return typeof resumeData.value.workExperience === 'string'
+      ? JSON.parse(resumeData.value.workExperience)
+      : resumeData.value.workExperience
+  } catch {
+    return []
+  }
+})
+
+const parsedSkills = computed<Skill[]>(() => {
+  if (!resumeData.value?.skills) return []
+  try {
+    return typeof resumeData.value.skills === 'string'
+      ? JSON.parse(resumeData.value.skills)
+      : resumeData.value.skills
+  } catch {
+    return []
+  }
+})
 
 const fetchCandidates = async (): Promise<void> => {
   loading.value = true
@@ -112,8 +206,22 @@ const handlePageChange = (page: number): void => {
   fetchCandidates()
 }
 
-const viewResume = (_app: Application): void => {
-  ElMessage.info('简历详情功能开发中')
+const viewResume = async (app: Application): Promise<void> => {
+  resumeDialogVisible.value = true
+  resumeLoading.value = true
+  resumeData.value = null
+  try {
+    const resume = await resumeApi.getResume(app.userId)
+    resumeData.value = resume
+    if (app.status === 'PENDING') {
+      await applicationApi.updateApplicationStatus(app.id, 'viewed')
+      fetchCandidates()
+    }
+  } catch {
+    ElMessage.error('获取简历失败')
+  } finally {
+    resumeLoading.value = false
+  }
 }
 
 const updateStatus = async (app: Application, status: string): Promise<void> => {
@@ -125,23 +233,25 @@ const updateStatus = async (app: Application, status: string): Promise<void> => 
 type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
 
 const getStatusType = (status: string): TagType => {
+  const s = status.toLowerCase()
   const types: Record<string, TagType> = {
     pending: 'info',
     viewed: 'warning',
     interview: 'success',
     rejected: 'danger',
   }
-  return types[status] || 'info'
+  return types[s] || 'info'
 }
 
 const getStatusText = (status: string): string => {
+  const s = status.toLowerCase()
   const texts: Record<string, string> = {
     pending: '待查看',
     viewed: '已查看',
     interview: '面试',
     rejected: '已拒绝',
   }
-  return texts[status] || status
+  return texts[s] || status
 }
 
 const formatTime = (time: string): string => {
@@ -184,6 +294,59 @@ onMounted(() => {
     margin-top: 16px;
     display: flex;
     justify-content: center;
+  }
+}
+
+.resume-detail {
+  .resume-section {
+    margin-bottom: 24px;
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #303133;
+      margin: 0 0 12px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #00bebd;
+    }
+
+    .resume-text {
+      color: #606266;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .resume-item {
+      padding: 12px;
+      background: #f5f7fa;
+      border-radius: 8px;
+      margin-bottom: 8px;
+
+      .item-header {
+        font-size: 14px;
+        font-weight: 600;
+        color: #303133;
+        margin-bottom: 4px;
+      }
+
+      .item-meta {
+        font-size: 13px;
+        color: #909399;
+      }
+
+      .item-desc {
+        font-size: 13px;
+        color: #606266;
+        margin-top: 4px;
+        line-height: 1.6;
+      }
+    }
+
+    .skills-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
   }
 }
 </style>

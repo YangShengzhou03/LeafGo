@@ -4,7 +4,7 @@ import { useUserStore } from '@/store/user'
 import router from '@/router'
 
 const instance: AxiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:8081',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -43,11 +43,11 @@ instance.interceptors.response.use(
         router.push('/login')
         ElMessage.error('登录已过期，请重新登录')
       } else if (status === 403) {
-        ElMessage.error('没有权限访问')
+        console.warn('权限不足:', error.config?.url)
       } else if (status === 404) {
-        ElMessage.error('请求的资源不存在')
+        console.warn('资源不存在:', error.config?.url)
       } else if (status === 500) {
-        ElMessage.error('服务器错误')
+        ElMessage.error('服务器繁忙，请稍后重试')
       } else {
         ElMessage.error(data.message || '请求失败')
       }

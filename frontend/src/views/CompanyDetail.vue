@@ -290,7 +290,7 @@ const fetchCompanyDetail = async (): Promise<void> => {
     loading.value = true
     const [companyData, jobsData] = await Promise.all([
       companyApi.getCompanyDetail(companyId),
-      companyApi.getCompanyJobs(companyId, { page: 0, size: 100 }),
+      companyApi.getCompanyJobs(companyId, { page: 1, size: 100 }),
     ])
 
     company.value = companyData

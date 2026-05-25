@@ -1,7 +1,9 @@
 -- LeafGO 数据库初始化脚本
-CREATE DATABASE IF NOT EXISTS leafgo DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+DROP DATABASE IF EXISTS leaf_go;
 
-USE leafgo;
+CREATE DATABASE leaf_go DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE leaf_go;
 
 -- 用户表
 CREATE TABLE IF NOT EXISTS users (
@@ -51,6 +53,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   description TEXT,
   requirements TEXT,
   benefits TEXT,
+  tags TEXT,
   status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT 'ACTIVE, CLOSED, DRAFT',
   view_count INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

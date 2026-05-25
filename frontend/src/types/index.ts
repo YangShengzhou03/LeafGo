@@ -41,7 +41,7 @@ export interface Job {
   benefits: string | string[]
   status: 'active' | 'closed' | 'draft'
   viewCount: number
-  tags?: string[]
+  tags?: string | string[]
   skills?: string[]
   online?: boolean
   companyName?: string
@@ -140,18 +140,6 @@ export interface PageData<T> {
   totalPages: number
   size: number
   number: number
-}
-
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface RegisterRequest {
-  username: string
-  email: string
-  password: string
-  userType: 'job_seeker' | 'employer'
 }
 
 export interface JobQuery {

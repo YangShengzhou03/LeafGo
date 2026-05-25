@@ -13,13 +13,23 @@ public interface JobRepository extends JpaRepository<Job, Long> {
 
     Page<Job> findByCompanyId(Long companyId, Pageable pageable);
 
+    Page<Job> findByCompanyIdAndStatus(Long companyId, Job.JobStatus status, Pageable pageable);
+
     Page<Job> findByStatus(Job.JobStatus status, Pageable pageable);
 
-    @Query("SELECT j FROM Job j WHERE " +
-           "(:keyword IS NULL OR j.title LIKE %:keyword% OR j.description LIKE %:keyword%) AND " +
-           "(:location IS NULL OR j.location LIKE %:location%) AND " +
+    @Query(value = "SELECT j FROM Job j WHERE " +
+           "(:keyword IS NULL OR j.title LIKE CONCAT('%', :keyword, '%') OR j.description LIKE CONCAT('%', :keyword, '%')) AND " +
+           "(:location IS NULL OR j.location LIKE CONCAT('%', :location, '%')) AND " +
            "(:jobType IS NULL OR j.jobType = :jobType) AND " +
-           "(:salary IS NULL OR j.salary LIKE %:salary%) AND " +
+           "(:salary IS NULL OR j.salary LIKE CONCAT('%', :salary, '%')) AND " +
+           "(:experience IS NULL OR j.experience = :experience) AND " +
+           "(:education IS NULL OR j.education = :education) AND " +
+           "j.status = 'ACTIVE'",
+           countQuery = "SELECT COUNT(j) FROM Job j WHERE " +
+           "(:keyword IS NULL OR j.title LIKE CONCAT('%', :keyword, '%') OR j.description LIKE CONCAT('%', :keyword, '%')) AND " +
+           "(:location IS NULL OR j.location LIKE CONCAT('%', :location, '%')) AND " +
+           "(:jobType IS NULL OR j.jobType = :jobType) AND " +
+           "(:salary IS NULL OR j.salary LIKE CONCAT('%', :salary, '%')) AND " +
            "(:experience IS NULL OR j.experience = :experience) AND " +
            "(:education IS NULL OR j.education = :education) AND " +
            "j.status = 'ACTIVE'")

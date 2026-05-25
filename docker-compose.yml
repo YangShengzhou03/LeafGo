@@ -7,11 +7,11 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: leafgo
-      MYSQL_USER: leafgo
-      MYSQL_PASSWORD: leafgo123
+      MYSQL_DATABASE: leaf_go
+      MYSQL_USER: leaf_go
+      MYSQL_PASSWORD: leaf_go123
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
       - ./data.sql:/docker-entrypoint-initdb.d/data.sql
@@ -47,28 +47,19 @@ services:
     container_name: leafgo-backend
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/leafgo
-      SPRING_DATASOURCE_USERNAME: leafgo
-      SPRING_DATASOURCE_PASSWORD: leafgo123
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/leaf_go?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: leaf_go
+      SPRING_DATASOURCE_PASSWORD: leaf_go123
       JWT_SECRET: your-secret-key-change-in-production
       JWT_EXPIRATION: 86400000
     depends_on:
       mariadb:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     networks:
       - leafgo-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   frontend:
     build:
@@ -80,21 +71,6 @@ services:
       - "80:80"
     depends_on:
       - backend
-    networks:
-      - leafgo-network
-
-  nginx:
-    image: nginx:alpine
-    container_name: leafgo-nginx
-    restart: unless-stopped
-    ports:
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - backend
-      - frontend
     networks:
       - leafgo-network
 

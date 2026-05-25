@@ -95,6 +95,7 @@ const handlePageChange = (page: number): void => {
 }
 
 const getStatusType = (status: string): TagType => {
+  const s = status.toLowerCase()
   const types: Record<string, TagType> = {
     pending: 'info',
     viewed: 'warning',
@@ -102,10 +103,11 @@ const getStatusType = (status: string): TagType => {
     rejected: 'danger',
     accepted: 'success',
   }
-  return types[status] || 'info'
+  return types[s] || 'info'
 }
 
 const getStatusText = (status: string): string => {
+  const s = status.toLowerCase()
   const texts: Record<string, string> = {
     pending: '待查看',
     viewed: '已查看',
@@ -113,7 +115,7 @@ const getStatusText = (status: string): string => {
     rejected: '已拒绝',
     accepted: '已录用',
   }
-  return texts[status] || status
+  return texts[s] || status
 }
 
 const formatTime = (time: string): string => {

@@ -4,6 +4,7 @@ import com.leafgo.entity.Conversation;
 import com.leafgo.entity.Message;
 import com.leafgo.repository.ConversationRepository;
 import com.leafgo.repository.MessageRepository;
+import com.leafgo.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +28,11 @@ public class MessageController {
 
     @GetMapping("/conversations")
     public ResponseEntity<ApiResponse<List<Conversation>>> getConversations() {
-        List<Conversation> conversations = conversationRepository.findAll(
-                Sort.by(Sort.Direction.DESC, "lastMessageTime"));
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("请先登录"));
+        }
+        List<Conversation> conversations = conversationRepository.findByUserId(userId);
         return ResponseEntity.ok(ApiResponse.success(conversations));
     }
 
@@ -37,7 +41,7 @@ public class MessageController {
             @PathVariable Long conversationId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "50") int size) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(Sort.Direction.ASC, "createdAt"));
         Page<Message> messagePage = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId, pageable);
         Map<String, Object> result = new HashMap<>();
         result.put("content", messagePage.getContent());
@@ -50,26 +54,40 @@ public class MessageController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Message>> sendMessage(@RequestBody Message message) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("请先登录"));
+        }
+        message.setSenderId(userId);
         message.setCreatedAt(LocalDateTime.now());
         message.setIsRead(false);
-        Message saved = messageRepository.save(message);
-        conversationRepository.findByUsers(message.getSenderId(), message.getReceiverId())
-                .ifPresent(conv -> {
-                    conv.setLastMessage(message.getContent());
-                    conv.setLastMessageTime(LocalDateTime.now());
-                    conversationRepository.save(conv);
+
+        Conversation conversation = conversationRepository.findByUsers(userId, message.getReceiverId())
+                .orElseGet(() -> {
+                    Conversation newConv = new Conversation();
+                    newConv.setUser1Id(userId);
+                    newConv.setUser2Id(message.getReceiverId());
+                    return conversationRepository.save(newConv);
                 });
+
+        message.setConversationId(conversation.getId());
+        Message saved = messageRepository.save(message);
+
+        conversation.setLastMessage(message.getContent());
+        conversation.setLastMessageTime(LocalDateTime.now());
+        conversationRepository.save(conversation);
+
         return ResponseEntity.ok(ApiResponse.success("发送成功", saved));
     }
 
     @PutMapping("/{id}/read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(@PathVariable Long id) {
-        return messageRepository.findById(id)
-                .map(msg -> {
-                    msg.setIsRead(true);
-                    messageRepository.save(msg);
-                    return ResponseEntity.ok(ApiResponse.success("已读", null));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        if (!messageRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        Message msg = messageRepository.findById(id).get();
+        msg.setIsRead(true);
+        messageRepository.save(msg);
+        return ResponseEntity.ok(ApiResponse.success("已读", null));
     }
 }

@@ -22,25 +22,23 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        String identifier = request.getPhone() != null ? request.getPhone() : request.getEmail();
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("手机号/邮箱已被注册");
-        }
-
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("用户名已被使用");
         }
 
-        if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
+        if (userRepository.existsByPhone(request.getPhone())) {
             throw new RuntimeException("手机号已被注册");
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isEmpty() && userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("邮箱已被注册");
         }
 
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
+        user.setEmail(request.getEmail() != null ? request.getEmail() : request.getPhone());
         user.setPhone(request.getPhone());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.getCode()));
         user.setUserType(User.UserType.valueOf(request.getUserType().toUpperCase()));
         user.setStatus(User.UserStatus.ACTIVE);
 
@@ -48,19 +46,18 @@ public class AuthService {
 
         String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getUserType().name());
 
-        log.info("用户注册成功: {}", request.getEmail());
+        log.info("用户注册成功: {}", request.getPhone());
 
         return new AuthResponse(user.getId(), token, user.getUserType().name());
     }
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseGet(() -> userRepository.findByPhone(request.getEmail())
-                        .orElseThrow(() -> new RuntimeException("手机号/邮箱或密码错误")));
+        User user = userRepository.findByPhone(request.getPhone())
+                .orElseThrow(() -> new RuntimeException("手机号未注册"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("手机号/邮箱或密码错误");
+        if (!passwordEncoder.matches(request.getCode(), user.getPassword())) {
+            throw new RuntimeException("验证码错误");
         }
 
         if (user.getStatus() == User.UserStatus.BANNED) {
@@ -69,7 +66,7 @@ public class AuthService {
 
         String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getUserType().name());
 
-        log.info("用户登录成功: {}", user.getEmail());
+        log.info("用户登录成功: {}", user.getPhone());
 
         return new AuthResponse(user.getId(), token, user.getUserType().name());
     }

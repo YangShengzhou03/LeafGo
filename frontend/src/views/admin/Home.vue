@@ -71,16 +71,31 @@
 </template>
 
 <script setup lang="ts">
+import { reactive, onMounted } from 'vue'
+import { adminApi } from '@/api/admin'
+
 defineOptions({
   name: 'AdminHome',
 })
-import { reactive } from 'vue'
 
 const stats = reactive({
-  userCount: 12580,
-  companyCount: 1256,
-  jobCount: 8965,
-  applicationCount: 45680,
+  userCount: 0,
+  companyCount: 0,
+  jobCount: 0,
+  applicationCount: 0,
+})
+
+const fetchStats = async (): Promise<void> => {
+  try {
+    const data = await adminApi.getStats()
+    Object.assign(stats, data)
+  } catch {
+    // 加载失败时使用默认值
+  }
+}
+
+onMounted(() => {
+  fetchStats()
 })
 </script>
 

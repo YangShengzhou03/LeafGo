@@ -40,7 +40,12 @@
         >
           <el-carousel-item v-for="banner in banners" :key="banner.id">
             <div class="banner-card" @click="handleBannerClick(banner)">
-              <img :src="banner.imageUrl" :alt="banner.title" class="banner-image" />
+              <img
+                :src="banner.imageUrl"
+                :alt="banner.title"
+                class="banner-image"
+                @error="handleBannerImgError($event)"
+              />
               <div class="banner-overlay">
                 <h3>{{ banner.title }}</h3>
                 <p>{{ banner.description }}</p>
@@ -48,7 +53,7 @@
             </div>
           </el-carousel-item>
         </el-carousel>
-        <el-skeleton v-else :rows="5" animated />
+        <el-skeleton v-else :rows="3" animated />
       </div>
     </section>
 
@@ -98,11 +103,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import NavBar from '@/components/NavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import { bannerApi, type Banner } from '@/api/banner'
 import { jobApi } from '@/api/job'
+import { configApi } from '@/api/config'
 import type { Job } from '@/types'
 
 defineOptions({
@@ -113,19 +118,19 @@ const router = useRouter()
 const searchKeyword = ref('')
 const loading = ref(false)
 
-const hotKeywords = [
-  'Java开发',
-  '前端开发',
-  '产品经理',
-  '运营',
-  'UI设计',
-  'Python',
-  '数据分析',
-  '测试工程师',
-]
+const hotKeywords = ref<string[]>([])
 
 const banners = ref<Banner[]>([])
 const featuredJobs = ref<Job[]>([])
+
+const fetchHotKeywords = async (): Promise<void> => {
+  try {
+    const data = await configApi.getHotKeywords()
+    hotKeywords.value = data
+  } catch (error) {
+    console.error('Failed to fetch hot keywords:', error)
+  }
+}
 
 const fetchBanners = async (): Promise<void> => {
   try {
@@ -142,11 +147,10 @@ const fetchFeaturedJobs = async (): Promise<void> => {
     const result = await jobApi.getJobList({ page: 1, size: 6 })
     featuredJobs.value = result.content.map((job) => ({
       ...job,
-      tags: job.tags || [],
+      tags: typeof job.tags === 'string' ? (job.tags ? job.tags.split(',') : []) : (job.tags || []),
     }))
   } catch (error) {
-    console.error('Failed to fetch featured jobs:', error)
-    ElMessage.error('获取精选职位失败')
+    console.error('获取精选职位失败:', error)
   } finally {
     loading.value = false
   }
@@ -155,6 +159,15 @@ const fetchFeaturedJobs = async (): Promise<void> => {
 const handleSearch = (): void => {
   if (searchKeyword.value.trim()) {
     router.push(`/jobs?keyword=${encodeURIComponent(searchKeyword.value)}`)
+  }
+}
+
+const handleBannerImgError = (e: Event): void => {
+  const img = e.target as HTMLImageElement
+  img.style.display = 'none'
+  const parent = img.parentElement
+  if (parent) {
+    parent.classList.add('banner-img-error')
   }
 }
 
@@ -173,6 +186,7 @@ const goToJob = (jobId: number): void => {
 }
 
 onMounted(() => {
+  fetchHotKeywords()
   fetchBanners()
   fetchFeaturedJobs()
 })
@@ -294,10 +308,8 @@ onMounted(() => {
   overflow: hidden;
   cursor: pointer;
 
-  &:hover {
-    .banner-overlay {
-      background: rgba(0, 0, 0, 0.3);
-    }
+  &.banner-img-error {
+    background: #000;
   }
 }
 
@@ -312,20 +324,19 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 24px 32px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
-  transition: background 0.3s ease;
+  padding: 16px 24px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
 
   h3 {
-    font-size: 24px;
+    font-size: 20px;
     color: white;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     font-weight: 500;
   }
 
   p {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
     margin: 0;
   }
 }

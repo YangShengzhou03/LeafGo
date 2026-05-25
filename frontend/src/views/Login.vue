@@ -167,8 +167,8 @@ const submit = async (): Promise<void> => {
     } catch {
       await userStore.register({
         username: form.phone,
-        email: form.phone,
-        password: form.code,
+        phone: form.phone,
+        code: form.code,
         userType: userType.value,
       })
       router.push(userType.value === 'employer' ? '/employer' : '/seeker')
