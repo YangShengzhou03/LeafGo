@@ -77,23 +77,22 @@
               <div class="company-header">
                 <div class="company-logo">{{ company.name?.charAt(0) }}</div>
                 <div class="company-info">
-                  <div class="company-name">{{ company.name }}</div>
-                  <div class="company-tags">
-                    <span class="company-tag" v-if="company.verified">
-                      <el-icon><CircleCheck /></el-icon>
-                      已认证
-                    </span>
-                    <span class="company-tag">{{ company.scale }}</span>
-                    <span class="company-tag">{{ company.industry }}</span>
+                  <div class="company-name">
+                    {{ company.name }}
+                    <el-icon v-if="company.verified" class="verified-icon">
+                      <CircleCheck />
+                    </el-icon>
+                  </div>
+                  <div class="company-meta">
+                    <span>{{ company.scale }}</span>
+                    <span class="sep">·</span>
+                    <span>{{ company.industry }}</span>
                   </div>
                 </div>
               </div>
-              <div class="company-desc" v-if="company.description">
-                {{ truncateText(company.description, 60) }}
-              </div>
-              <div class="company-location" v-if="company.location">
+              <div class="company-location" v-if="getLocation(company)">
                 <el-icon><Location /></el-icon>
-                {{ company.location }}
+                {{ getLocation(company) }}
               </div>
             </div>
           </template>
@@ -211,9 +210,14 @@ const goToCompany = (companyId: number): void => {
   router.push(`/companies/${companyId}`)
 }
 
-const truncateText = (text: string, maxLength: number): string => {
-  if (!text) return ''
-  return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
+const getLocation = (company: Company): string => {
+  if (company.city && company.district) {
+    return `${company.city}·${company.district}`
+  }
+  if (company.city) {
+    return company.city
+  }
+  return ''
 }
 
 onMounted(() => {
@@ -226,7 +230,7 @@ onMounted(() => {
 
 .companies-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #ffffff 25%);
+  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #f7f7f7 25%);
 }
 
 .page-container {
@@ -293,32 +297,28 @@ onMounted(() => {
 
 .company-card {
   background: white;
-  padding: 20px;
+  padding: 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 8px;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
 }
 
 .company-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .company-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
   background: linear-gradient(135deg, $primary-soft 0%, $primary 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   color: white;
   flex-shrink: 0;
@@ -330,49 +330,40 @@ onMounted(() => {
 }
 
 .company-name {
-  font-size: 16px;
+  font-size: 15px;
   color: #222;
   font-weight: 500;
-  margin-bottom: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.company-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.company-tag {
-  font-size: 12px;
-  color: #666;
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
 
-  .el-icon {
+  .verified-icon {
     color: $primary;
+    font-size: 14px;
   }
 }
 
-.company-desc {
-  font-size: 13px;
-  color: #999;
-  line-height: 1.6;
-  margin-bottom: 8px;
+.company-meta {
+  font-size: 12px;
+  color: #666;
+
+  .sep {
+    margin: 0 3px;
+    color: #ccc;
+  }
 }
 
 .company-location {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 12px;
   color: #999;
 
   .el-icon {
     color: $primary;
+    font-size: 12px;
   }
 }
 

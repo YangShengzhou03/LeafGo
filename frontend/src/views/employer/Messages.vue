@@ -18,7 +18,11 @@
             </el-avatar>
             <div class="conv-info">
               <div class="conv-name">
-                {{ conv.user1Id === userStore.userInfo?.id ? conv.user2?.username : conv.user1?.username }}
+                {{
+                  conv.user1Id === userStore.userInfo?.id
+                    ? conv.user2?.username
+                    : conv.user1?.username
+                }}
               </div>
               <div class="conv-last-msg">{{ conv.lastMessage }}</div>
             </div>
@@ -31,7 +35,11 @@
       <div class="chat-area">
         <div class="chat-header" v-if="activeConversation">
           <h3>
-            {{ activeConversation.user1Id === userStore.userInfo?.id ? activeConversation.user2?.username : activeConversation.user1?.username }}
+            {{
+              activeConversation.user1Id === userStore.userInfo?.id
+                ? activeConversation.user2?.username
+                : activeConversation.user1?.username
+            }}
           </h3>
         </div>
         <div class="chat-placeholder" v-else>
@@ -110,9 +118,10 @@ const selectConversation = async (conv: Conversation): Promise<void> => {
 const sendMessage = async (): Promise<void> => {
   if (!messageInput.value.trim() || !activeConversation.value) return
   try {
-    const receiverId = activeConversation.value.user1Id === userStore.userInfo?.id
-      ? activeConversation.value.user2Id
-      : activeConversation.value.user1Id
+    const receiverId =
+      activeConversation.value.user1Id === userStore.userInfo?.id
+        ? activeConversation.value.user2Id
+        : activeConversation.value.user1Id
     const msg = await messageApi.sendMessage({
       receiverId,
       content: messageInput.value,

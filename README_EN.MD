@@ -6,11 +6,13 @@
 
 **Connecting Talent with Opportunities, Starting a New Career Chapter**
 
+[![GitHub stars](https://img.shields.io/github/stars/YangShengzhou03/LeafGo?style=social)](https://github.com/YangShengzhou03/LeafGo)
+[![GitHub forks](https://img.shields.io/github/forks/YangShengzhou03/LeafGo?style=social)](https://github.com/YangShengzhou03/LeafGo)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Vue](https://img.shields.io/badge/Vue-3.4.0-brightgreen.svg)](https://vuejs.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)](https://spring.io/projects/spring-boot)
 
-[Live Demo](#) | [Documentation](#) | [API Docs](API_DOCUMENTATION.md) | [Design Docs](DESIGN.md)
+[Live Demo](#) | [Documentation](#) | [GitHub](https://github.com/YangShengzhou03/LeafGo)
 
 </div>
 
@@ -146,8 +148,7 @@
 - **Language**: Java 17
 - **Framework**: Spring Boot 3.2 + Spring Security + JWT
 - **ORM**: Spring Data JPA
-- **Database**: MariaDB 10.11
-- **Cache**: Redis 7
+- **Database**: MariaDB 10.11 (MySQL Compatible)
 - **API Documentation**: Swagger/OpenAPI 3.0
 
 ### DevOps
@@ -198,8 +199,6 @@ leaf-go/
 │
 ├── data.sql                    # Database Initialization
 ├── docker-compose.yml          # Docker Compose Configuration
-├── API_DOCUMENTATION.md        # API Documentation
-├── DESIGN.md                   # Design Documentation
 ├── LICENSE                     # License
 └── README.md                   # Project README
 ```
@@ -213,8 +212,7 @@ leaf-go/
 - **Node.js** >= 18.0
 - **Java** >= 17
 - **Maven** >= 3.8
-- **MariaDB** >= 10.11
-- **Redis** >= 7.0
+- **MariaDB** >= 10.11 (or MySQL >= 8.0)
 - **Docker** >= 20.0 (optional)
 
 ### Installation
@@ -289,16 +287,16 @@ docker-compose down
 ### Default Accounts
 
 #### Job Seeker Account
-- Email: `zhangsan@example.com`
-- Password: `password123`
+- Phone: `13397062330`
+- Verification Code: `123456`
 
 #### Recruiter Account
-- Email: `wangwu@example.com`
-- Password: `password123`
+- Phone: `13397062331`
+- Verification Code: `123456`
 
 #### Admin Account
-- Email: `admin@example.com`
-- Password: `admin123`
+- Phone: `13397062332`
+- Verification Code: `123456`
 
 ---
 
@@ -355,54 +353,50 @@ docker-compose down
 
 ## API Documentation
 
-For detailed API documentation, please refer to [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
-
 ### Main Endpoints
 
 #### Authentication Endpoints
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
+- `POST /auth/register` - User registration
+- `POST /auth/login` - User login
+- `POST /auth/logout` - User logout
 
 #### Job Endpoints
-- `GET /api/jobs` - Get job list
-- `GET /api/jobs/{id}` - Get job details
-- `POST /api/jobs` - Post job (Recruiter)
-- `PUT /api/jobs/{id}` - Update job
-- `DELETE /api/jobs/{id}` - Delete job
-- `GET /api/jobs/search` - Search jobs
-- `GET /api/jobs/my` - Get my jobs
+- `GET /jobs` - Get job list
+- `GET /jobs/{id}` - Get job details
+- `POST /jobs` - Post job (Recruiter)
+- `PUT /jobs/{id}` - Update job
+- `DELETE /jobs/{id}` - Delete job
+- `GET /jobs/search` - Search jobs
+- `GET /jobs/my` - Get my jobs
 
 #### User Endpoints
-- `GET /api/users/{id}` - Get user info
-- `PUT /api/users/{id}` - Update user info
+- `GET /users/{id}` - Get user info
+- `PUT /users/{id}` - Update user info
 
 #### Resume Endpoints
-- `GET /api/resumes/{userId}` - Get resume
-- `PUT /api/resumes/{userId}` - Update resume
+- `GET /resumes/{userId}` - Get resume
+- `PUT /resumes/{userId}` - Update resume
 
 #### Application Endpoints
-- `POST /api/applications` - Submit application
-- `GET /api/applications` - Get application records
-- `PUT /api/applications/{id}/status` - Update application status
+- `POST /applications` - Submit application
+- `GET /applications` - Get application records
+- `PUT /applications/{id}/status` - Update application status
 
 #### Message Endpoints
-- `GET /api/messages/conversations` - Get conversations
-- `POST /api/messages` - Send message
+- `GET /messages/conversations` - Get conversations
+- `POST /messages` - Send message
 
 #### Company Endpoints
-- `GET /api/companies` - Get company list
-- `GET /api/companies/{id}` - Get company detail
-- `GET /api/companies/{id}/jobs` - Get company jobs
+- `GET /companies` - Get company list
+- `GET /companies/{id}` - Get company detail
+- `GET /companies/{id}/jobs` - Get company jobs
 
 #### Banner Endpoints
-- `GET /api/banners` - Get banner list
+- `GET /banners` - Get banner list
 
 ---
 
 ## Database Design
-
-For detailed database design, please refer to [DESIGN.md](DESIGN.md)
 
 ### Core Tables
 

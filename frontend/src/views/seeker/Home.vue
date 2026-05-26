@@ -24,7 +24,7 @@
         <el-card shadow="hover" class="job-card" @click="$router.push(`/seeker/jobs/${job.id}`)">
           <div class="job-title">{{ job.title }}</div>
           <div class="job-salary">{{ job.salary }}</div>
-          <div class="job-meta">{{ job.location }} · {{ job.experience }}</div>
+          <div class="job-meta">{{ getLocation(job) }} · {{ job.experience }}</div>
           <div class="company-name">{{ getCompanyName(job) }}</div>
         </el-card>
       </el-col>
@@ -72,6 +72,25 @@ const getCompanyName = (job: Job): string => {
   }
   if (job.company && typeof job.company === 'object') {
     return job.company.name
+  }
+  return ''
+}
+
+const getLocation = (job: Job): string => {
+  if (job.city && job.district) {
+    return `${job.city}·${job.district}`
+  }
+  if (job.city) {
+    return job.city
+  }
+  if (typeof job.company === 'object' && job.company) {
+    const c = job.company
+    if (c.city && c.district) {
+      return `${c.city}·${c.district}`
+    }
+    if (c.city) {
+      return c.city
+    }
   }
   return ''
 }

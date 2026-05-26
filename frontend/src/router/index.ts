@@ -211,16 +211,16 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const userStore = useUserStore()
 
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next('/login')
   } else if (to.meta.guest && userStore.isLoggedIn) {
     const role = userStore.userInfo?.userType
-    if (role === 'job_seeker') {
+    if (role === 'JOB_SEEKER') {
       next('/seeker')
-    } else if (role === 'employer') {
+    } else if (role === 'EMPLOYER') {
       next('/employer')
     } else {
       next()
@@ -228,9 +228,9 @@ router.beforeEach((to, from, next) => {
   } else if (to.meta.role) {
     const role = userStore.userInfo?.userType
     if (role !== to.meta.role) {
-      if (role === 'job_seeker') {
+      if (role === 'JOB_SEEKER') {
         next('/seeker')
-      } else if (role === 'employer') {
+      } else if (role === 'EMPLOYER') {
         next('/employer')
       } else {
         next('/login')

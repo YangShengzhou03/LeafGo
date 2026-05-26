@@ -4,17 +4,15 @@
 
 ![LeafGO Logo](frontend/src/assets/images/logo.png)
 
-**连接人才与机遇，开启职业新篇章**
+[在线演示](#) | [文档](#) | [GitHub](https://github.com/YangShengzhou03/LeafGo)
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Vue](https://img.shields.io/badge/Vue-3.4.0-brightgreen.svg)](https://vuejs.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)](https://spring.io/projects/spring-boot)
+[![GitHub Stars](https://img.shields.io/github/stars/YangShengzhou03/LeafGo?style=for-the-badge&logo=github)](https://github.com/YangShengzhou03/LeafGo)&nbsp;[![GitHub Forks](https://img.shields.io/github/forks/YangShengzhou03/LeafGo?style=for-the-badge&logo=github)](https://github.com/YangShengzhou03/LeafGo)&nbsp;[![GitHub Last Commit](https://img.shields.io/github/last-commit/YangShengzhou03/LeafGo?style=for-the-badge&logo=github)](https://github.com/YangShengzhou03/LeafGo)&nbsp;[![Vue.js](https://img.shields.io/badge/Vue.js-3.4.0-42b883?style=for-the-badge&logo=vuedotjs)](https://vuejs.org/)&nbsp;[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.0-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)&nbsp;[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql)](https://www.mysql.com/)
 
-[在线演示](#) | [文档](#) | [API文档](API_DOCUMENTATION.md) | [设计文档](DESIGN.md)
+**一个现代化的智能招聘平台，采用前后端分离架构**
+
+[快速开始](#快速开始) • [功能特性](#功能特性)
 
 </div>
-
----
 
 ## 项目简介
 
@@ -146,8 +144,7 @@
 - **语言**：Java 17
 - **框架**：Spring Boot 3.2 + Spring Security + JWT
 - **ORM**：Spring Data JPA
-- **数据库**：MariaDB 10.11
-- **缓存**：Redis 7
+- **数据库**：MariaDB 10.11（MySQL兼容）
 - **API文档**：Swagger/OpenAPI 3.0
 
 ### DevOps
@@ -198,8 +195,6 @@ leaf-go/
 │
 ├── data.sql                    # 数据库初始化脚本
 ├── docker-compose.yml          # Docker编排配置
-├── API_DOCUMENTATION.md        # API文档
-├── DESIGN.md                   # 设计文档
 ├── LICENSE                     # 许可证
 └── README.md                   # 项目说明
 ```
@@ -213,8 +208,7 @@ leaf-go/
 - **Node.js** >= 18.0
 - **Java** >= 17
 - **Maven** >= 3.8
-- **MariaDB** >= 10.11
-- **Redis** >= 7.0
+- **MariaDB** >= 10.11（或MySQL >= 8.0）
 - **Docker** >= 20.0（可选）
 
 ### 安装步骤
@@ -289,16 +283,16 @@ docker-compose down
 ### 默认账号
 
 #### 求职者账号
-- 邮箱：`zhangsan@example.com`
-- 密码：`password123`
+- 手机号：`13397062330`
+- 验证码：`123456`
 
 #### 招聘者账号
-- 邮箱：`wangwu@example.com`
-- 密码：`password123`
+- 手机号：`13397062331`
+- 验证码：`123456`
 
 #### 管理员账号
-- 邮箱：`admin@example.com`
-- 密码：`admin123`
+- 手机号：`13397062332`
+- 验证码：`123456`
 
 ---
 
@@ -355,102 +349,50 @@ docker-compose down
 
 ## API文档
 
-详细的API文档请查看 [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
-
 ### 主要接口
 
 #### 认证接口
-- `POST /api/auth/register` - 用户注册
-- `POST /api/auth/login` - 用户登录
-- `POST /api/auth/logout` - 用户登出
+- `POST /auth/register` - 用户注册
+- `POST /auth/login` - 用户登录
+- `POST /auth/logout` - 用户登出
 
 #### 职位接口
-- `GET /api/jobs` - 获取职位列表
-- `GET /api/jobs/{id}` - 获取职位详情
-- `POST /api/jobs` - 发布职位（招聘者）
-- `PUT /api/jobs/{id}` - 更新职位
-- `DELETE /api/jobs/{id}` - 删除职位
-- `GET /api/jobs/search` - 搜索职位
-- `GET /api/jobs/my` - 获取我的职位
+- `GET /jobs` - 获取职位列表
+- `GET /jobs/{id}` - 获取职位详情
+- `POST /jobs` - 发布职位（招聘者）
+- `PUT /jobs/{id}` - 更新职位
+- `DELETE /jobs/{id}` - 删除职位
+- `GET /jobs/search` - 搜索职位
+- `GET /jobs/my` - 获取我的职位
 
 #### 用户接口
-- `GET /api/users/{id}` - 获取用户信息
-- `PUT /api/users/{id}` - 更新用户信息
+- `GET /users/{id}` - 获取用户信息
+- `PUT /users/{id}` - 更新用户信息
 
 #### 简历接口
-- `GET /api/resumes/{userId}` - 获取简历
-- `PUT /api/resumes/{userId}` - 更新简历
+- `GET /resumes/{userId}` - 获取简历
+- `PUT /resumes/{userId}` - 更新简历
 
 #### 投递接口
-- `POST /api/applications` - 投递简历
-- `GET /api/applications` - 获取投递记录
-- `PUT /api/applications/{id}/status` - 更新投递状态
+- `POST /applications` - 投递简历
+- `GET /applications` - 获取投递记录
+- `PUT /applications/{id}/status` - 更新投递状态
 
 #### 消息接口
-- `GET /api/messages/conversations` - 获取会话列表
-- `POST /api/messages` - 发送消息
+- `GET /messages/conversations` - 获取会话列表
+- `POST /messages` - 发送消息
 
 #### 企业接口
-- `GET /api/companies` - 获取企业列表
-- `GET /api/companies/{id}` - 获取企业详情
-- `GET /api/companies/{id}/jobs` - 获取企业职位
+- `GET /companies` - 获取企业列表
+- `GET /companies/{id}` - 获取企业详情
+- `GET /companies/{id}/jobs` - 获取企业职位
 
 #### 轮播图接口
-- `GET /api/banners` - 获取轮播图列表
-
----
-
-## 界面预览
-
-### 求职者端
-
-#### 首页
-![求职者首页](docs/images/seeker-home.png)
-- 职位搜索栏
-- 热门职位分类
-- 精选职位推荐
-- 热门企业展示
-
-#### 职位列表
-![职位列表](docs/images/job-list.png)
-- 多条件筛选
-- 职位卡片展示
-- 分页加载
-
-#### 职位详情
-![职位详情](docs/images/job-detail.png)
-- 职位信息
-- 公司介绍
-- 一键投递
-- 收藏功能
-
-### 招聘者端
-
-#### 管理首页
-![招聘者首页](docs/images/employer-home.png)
-- 数据统计
-- 最新投递
-- 快捷操作
-
-#### 职位管理
-![职位管理](docs/images/employer-jobs.png)
-- 职位列表
-- 状态管理
-- 编辑删除
-
-### 管理后台
-
-#### 数据统计
-![管理后台](docs/images/admin-home.png)
-- 平台数据
-- 趋势分析
-- 图表展示
+- `GET /banners` - 获取轮播图列表
 
 ---
 
 ## 数据库设计
-
-详细的数据库设计请查看 [DESIGN.md](DESIGN.md)
 
 ### 核心表结构
 

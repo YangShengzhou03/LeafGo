@@ -29,14 +29,14 @@ public class JobController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String city,
             @RequestParam(required = false) String jobType,
             @RequestParam(required = false) String salary,
             @RequestParam(required = false) String experience,
             @RequestParam(required = false) String education) {
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Job> jobPage = jobRepository.searchJobs(keyword, location, jobType, salary, experience, education, pageable);
+        Page<Job> jobPage = jobRepository.searchJobs(keyword, city, jobType, salary, experience, education, pageable);
 
         Map<String, Object> result = new HashMap<>();
         result.put("content", jobPage.getContent());
@@ -53,14 +53,14 @@ public class JobController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String city,
             @RequestParam(required = false) String jobType,
             @RequestParam(required = false) String salary,
             @RequestParam(required = false) String experience,
             @RequestParam(required = false) String education) {
 
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Job> jobPage = jobRepository.searchJobs(keyword, location, jobType, salary, experience, education, pageable);
+        Page<Job> jobPage = jobRepository.searchJobs(keyword, city, jobType, salary, experience, education, pageable);
 
         Map<String, Object> result = new HashMap<>();
         result.put("content", jobPage.getContent());

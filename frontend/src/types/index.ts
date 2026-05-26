@@ -4,8 +4,8 @@ export interface User {
   email: string
   phone?: string
   avatar?: string
-  userType: 'job_seeker' | 'employer'
-  status: 'active' | 'inactive' | 'banned'
+  userType: 'JOB_SEEKER' | 'EMPLOYER'
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED'
   createdAt: string
   updatedAt: string
 }
@@ -18,7 +18,10 @@ export interface Company {
   scale: string
   industry: string
   description?: string
-  location?: string
+  province?: string
+  city?: string
+  district?: string
+  address?: string
   website?: string
   verified: boolean
   jobCount?: number
@@ -31,15 +34,17 @@ export interface Job {
   companyId: number
   company?: Company | string
   title: string
-  location: string
+  province?: string
+  city?: string
+  district?: string
+  address?: string
   salary: string
   jobType: string
   experience: string
   education: string
   description: string
-  requirements: string
   benefits: string | string[]
-  status: 'active' | 'closed' | 'draft'
+  status: 'ACTIVE' | 'CLOSED' | 'DRAFT'
   viewCount: number
   tags?: string | string[]
   skills?: string[]
@@ -99,7 +104,7 @@ export interface Application {
   resumeId: number
   resume?: Resume
   coverLetter?: string
-  status: 'pending' | 'viewed' | 'interview' | 'rejected' | 'accepted'
+  status: 'PENDING' | 'VIEWED' | 'INTERVIEW' | 'REJECTED' | 'ACCEPTED'
   createdAt: string
   updatedAt: string
 }

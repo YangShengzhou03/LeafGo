@@ -26,8 +26,17 @@ public class Job {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @Column(length = 50)
+    private String province;
+
+    @Column(length = 50)
+    private String city;
+
+    @Column(length = 50)
+    private String district;
+
     @Column(length = 255)
-    private String location;
+    private String address;
 
     @Column(length = 50)
     private String salary;
@@ -43,9 +52,6 @@ public class Job {
 
     @Column(columnDefinition = "TEXT")
     private String description;
-
-    @Column(columnDefinition = "TEXT")
-    private String requirements;
 
     @Column(columnDefinition = "TEXT")
     private String benefits;

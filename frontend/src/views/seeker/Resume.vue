@@ -178,11 +178,39 @@ import { resumeApi } from '@/api'
 import type { Resume } from '@/types'
 import { useUserStore } from '@/store/user'
 
+interface EducationFormItem {
+  school: string
+  major: string
+  degree: string
+  dateRange: [string, string] | []
+}
+
+interface WorkExperienceFormItem {
+  company: string
+  position: string
+  description: string
+}
+
+interface SkillFormItem {
+  name: string
+  level: string
+}
+
+interface ResumeFormData {
+  name: string
+  phone: string
+  email: string
+  selfIntroduction: string
+  education: EducationFormItem[]
+  workExperience: WorkExperienceFormItem[]
+  skills: SkillFormItem[]
+}
+
 const userStore = useUserStore()
 const resumeFormRef = ref<FormInstance>()
 const saving = ref(false)
 
-const resumeForm = reactive({
+const resumeForm = reactive<ResumeFormData>({
   name: '',
   phone: '',
   email: '',
@@ -271,10 +299,7 @@ const handleSave = async (): Promise<void> => {
           workExperience: JSON.stringify(resumeForm.workExperience),
           skills: JSON.stringify(resumeForm.skills),
         }
-        await resumeApi.updateResume(
-          userStore.userInfo!.id,
-          payload as unknown as Partial<Resume>
-        )
+        await resumeApi.updateResume(userStore.userInfo!.id, payload as unknown as Partial<Resume>)
         ElMessage.success('简历保存成功')
       } finally {
         saving.value = false
@@ -292,9 +317,20 @@ onMounted(async (): Promise<void> => {
       resumeForm.email = resume.email || ''
       resumeForm.selfIntroduction = resume.selfIntroduction || ''
       if (typeof resume.education === 'string' && resume.education) {
-        resumeForm.education = JSON.parse(resume.education)
+        const eduArray = JSON.parse(resume.education)
+        resumeForm.education = eduArray.map((edu: Education) => ({
+          school: edu.school,
+          major: edu.major,
+          degree: edu.degree,
+          dateRange: [edu.startDate, edu.endDate] as [string, string]
+        }))
       } else if (Array.isArray(resume.education)) {
-        resumeForm.education = resume.education
+        resumeForm.education = resume.education.map((edu) => ({
+          school: edu.school,
+          major: edu.major,
+          degree: edu.degree,
+          dateRange: [edu.startDate, edu.endDate] as [string, string]
+        }))
       }
       if (typeof resume.workExperience === 'string' && resume.workExperience) {
         resumeForm.workExperience = JSON.parse(resume.workExperience)

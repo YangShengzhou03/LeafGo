@@ -89,7 +89,7 @@
                 <div class="company-row">
                   <span class="company-name">{{ getCompanyName(job) }}</span>
                   <span class="industry">{{ getCompanyIndustry(job) }}</span>
-                  <span class="location">{{ job.location }}</span>
+                  <span class="location">{{ getLocation(job) }}</span>
                 </div>
               </div>
             </template>
@@ -110,18 +110,21 @@
           <div v-if="selectedJob" class="detail-content">
             <div class="detail-header">
               <div class="detail-title-row">
-                <span class="detail-job-title">{{ selectedJob.title }}</span>
-                <span class="detail-salary">{{ selectedJob.salary }}</span>
-                <div class="detail-actions">
-                  <el-button type="primary" @click="communicate">立即沟通</el-button>
-                  <el-button @click="toggleFavorite">
-                    <el-icon><Star /></el-icon>
+                <div class="title-left">
+                  <span class="detail-job-title">{{ selectedJob.title }}</span>
+                  <span class="detail-salary">{{ selectedJob.salary }}</span>
+                </div>
+                <div class="title-right">
+                  <el-button type="primary" class="communicate-btn" @click="communicate">
+                    立即沟通
+                  </el-button>
+                  <el-button class="favorite-btn" @click="toggleFavorite">
                     {{ isFavorited ? '已收藏' : '收藏' }}
                   </el-button>
                 </div>
               </div>
               <div class="detail-meta-row">
-                <span>{{ selectedJob.location }}</span>
+                <span>{{ getLocation(selectedJob) }}</span>
                 <span class="sep">|</span>
                 <span>{{ selectedJob.experience }}</span>
                 <span class="sep">|</span>
@@ -130,48 +133,30 @@
             </div>
 
             <div class="detail-scroll">
-              <div class="detail-section">
+              <div class="detail-section" v-if="selectedJob.description">
                 <h2 class="section-title">职位描述</h2>
                 <div class="job-description">{{ selectedJob.description }}</div>
-              </div>
-
-              <div class="detail-section" v-if="selectedJob.requirements">
-                <h2 class="section-title">任职要求</h2>
-                <div class="job-requirements">{{ selectedJob.requirements }}</div>
-              </div>
-
-              <div class="detail-section" v-if="selectedJob.benefits">
-                <h2 class="section-title">福利待遇</h2>
-                <div class="benefits-list">
-                  <el-tag
-                    v-for="benefit in getBenefitsList(selectedJob.benefits)"
-                    :key="benefit"
-                    size="small"
-                    >{{ benefit }}</el-tag
-                  >
-                </div>
               </div>
 
               <div class="hr-card" v-if="selectedJob.company">
                 <div class="hr-avatar">{{ getCompanyInitial(selectedJob) }}</div>
                 <div class="hr-info">
-                  <div class="hr-row">
-                    <span class="hr-name">{{ getCompanyName(selectedJob) }}</span>
-                    <span class="hr-status">{{
-                      getCompanyVerified(selectedJob) ? '已认证' : ''
-                    }}</span>
-                  </div>
-                  <div class="hr-company">
-                    {{ getCompanyIndustry(selectedJob) }} · {{ getCompanyScale(selectedJob) }}
-                  </div>
+                  <span class="hr-name">龚先生</span>
+                  <span class="hr-status">在线</span>
+                  <div class="hr-company">{{ getCompanyName(selectedJob) }} · 招聘专员</div>
                 </div>
-                <el-button text @click="goToCompany(getCompanyId(selectedJob))">查看公司</el-button>
               </div>
 
               <div class="detail-section">
                 <h2 class="section-title">工作地点</h2>
-                <div class="address-text">{{ selectedJob.location }}</div>
+                <div class="address-text">{{ getFullAddress(selectedJob) }}</div>
               </div>
+            </div>
+
+            <div class="detail-footer">
+              <el-button class="view-more-btn" @click="goToJobDetail(selectedJob.id)">
+                查看更多信息
+              </el-button>
             </div>
           </div>
           <el-empty v-else description="请选择职位查看详情" />
@@ -186,7 +171,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Star } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import NavBar from '@/components/NavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -235,45 +219,9 @@ const getCompanyIndustry = (job: Job): string => {
   return ''
 }
 
-const getCompanyScale = (job: Job): string => {
-  if (typeof job.company === 'string') {
-    return ''
-  }
-  if (job.company && typeof job.company === 'object') {
-    return job.company.scale
-  }
-  return ''
-}
-
-const getCompanyVerified = (job: Job): boolean => {
-  if (typeof job.company === 'string') {
-    return false
-  }
-  if (job.company && typeof job.company === 'object') {
-    return job.company.verified
-  }
-  return false
-}
-
-const getCompanyId = (job: Job): number => {
-  if (typeof job.company === 'string') {
-    return 0
-  }
-  if (job.company && typeof job.company === 'object') {
-    return job.company.id
-  }
-  return 0
-}
-
 const getCompanyInitial = (job: Job): string => {
   const name = getCompanyName(job)
   return name ? name.charAt(0) : ''
-}
-
-const getBenefitsList = (benefits: string | string[]): string[] => {
-  if (Array.isArray(benefits)) return benefits
-  if (typeof benefits === 'string' && benefits) return benefits.split(',').map((b) => b.trim())
-  return []
 }
 
 const fetchJobs = async (): Promise<void> => {
@@ -342,10 +290,50 @@ const toggleFavorite = (): void => {
   ElMessage.success(isFavorited.value ? '收藏成功' : '已取消收藏')
 }
 
-const goToCompany = (companyId: number): void => {
-  if (companyId > 0) {
-    router.push(`/companies/${companyId}`)
+const getLocation = (job: Job): string => {
+  if (job.city && job.district) {
+    return `${job.city}·${job.district}`
   }
+  if (job.city) {
+    return job.city
+  }
+  if (typeof job.company === 'object' && job.company) {
+    const c = job.company
+    if (c.city && c.district) {
+      return `${c.city}·${c.district}`
+    }
+    if (c.city) {
+      return c.city
+    }
+  }
+  return ''
+}
+
+const getFullAddress = (job: Job): string => {
+  const parts: string[] = []
+  if (job.province) parts.push(job.province)
+  if (job.city && job.city !== job.province) parts.push(job.city)
+  if (job.district) parts.push(job.district)
+  if (job.address) parts.push(job.address)
+  if (parts.length > 0) {
+    return parts.join(' ')
+  }
+  if (typeof job.company === 'object' && job.company) {
+    const c = job.company
+    const companyParts: string[] = []
+    if (c.province) companyParts.push(c.province)
+    if (c.city && c.city !== c.province) companyParts.push(c.city)
+    if (c.district) companyParts.push(c.district)
+    if (c.address) companyParts.push(c.address)
+    if (companyParts.length > 0) {
+      return companyParts.join(' ')
+    }
+  }
+  return ''
+}
+
+const goToJobDetail = (jobId: number): void => {
+  router.push(`/jobs/${jobId}`)
 }
 
 onMounted(() => {
@@ -358,7 +346,7 @@ onMounted(() => {
 
 .jobs-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #ffffff 25%);
+  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #f7f7f7 25%);
 }
 
 .page-container {
@@ -553,8 +541,19 @@ onMounted(() => {
 .detail-title-row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: space-between;
   margin-bottom: 8px;
+}
+
+.title-left {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.title-right {
+  display: flex;
+  gap: 8px;
 }
 
 .detail-job-title {
@@ -567,28 +566,6 @@ onMounted(() => {
   font-size: 20px;
   color: #ff6b6b;
   font-weight: 500;
-  margin-right: auto;
-}
-
-.detail-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-
-  .el-button--primary {
-    background-color: $primary;
-    border-color: $primary;
-
-    &:hover {
-      background-color: $primary-soft;
-      border-color: $primary-soft;
-    }
-
-    &:active {
-      background-color: $primary-deep;
-      border-color: $primary-deep;
-    }
-  }
 }
 
 .detail-meta-row {
@@ -608,21 +585,26 @@ onMounted(() => {
 }
 
 .detail-section {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 
   .section-title {
     font-size: 16px;
     color: $ink;
     font-weight: 500;
-    margin: 0 0 12px 0;
+    margin: 0 0 8px 0;
   }
 
-  .job-description,
-  .job-requirements,
   .address-text {
     font-size: 14px;
     color: $body;
     line-height: 1.8;
+  }
+
+  .job-description {
+    font-size: 14px;
+    color: $body;
+    line-height: 1.8;
+    white-space: pre-wrap;
   }
 }
 
@@ -639,46 +621,70 @@ onMounted(() => {
   padding: 16px;
   background-color: #f8f8f8;
   border-radius: $rounded-lg;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .hr-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: 50%;
   background-color: $primary-soft;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   color: $on-primary;
+  flex-shrink: 0;
 }
 
 .hr-info {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: baseline;
+  gap: 8px;
   flex: 1;
-}
-
-.hr-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .hr-name {
   font-size: 14px;
   color: $ink;
+  font-weight: 500;
 }
 
 .hr-status {
   font-size: 12px;
   color: $primary;
+  padding: 2px 8px;
+  background-color: rgba($primary, 0.1);
+  border-radius: 12px;
 }
 
 .hr-company {
   font-size: 13px;
   color: $body;
+  width: 100%;
+}
+
+.detail-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 1px solid $hairline;
+  margin-top: auto;
+
+  .view-more-btn {
+    padding: 10px 28px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid $primary;
+    color: $primary;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba($primary, 0.05);
+    }
+  }
 }
 </style>

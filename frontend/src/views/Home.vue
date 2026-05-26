@@ -72,23 +72,35 @@
               class="job-card"
               @click="goToJob(job.id)"
             >
-              <div class="job-header">
-                <h3 class="job-title">{{ job.title }}</h3>
-                <div class="salary">{{ job.salary }}</div>
-              </div>
-              <div class="job-tags">
-                <span v-for="tag in job.tags" :key="tag" class="tag">{{ tag }}</span>
-              </div>
-              <div class="company-info">
-                <div class="company-name">
-                  {{ typeof job.company === 'object' ? job.company.name : job.companyName || '' }}
+              <div class="job-top">
+                <div class="job-header">
+                  <h3 class="job-title">{{ job.title }}</h3>
+                  <div class="salary">{{ job.salary }}</div>
                 </div>
-                <div class="company-detail">
-                  {{ typeof job.company === 'object' ? job.company.industry : job.industry || '' }}
-                  ·
-                  {{ typeof job.company === 'object' ? job.company.scale : job.stage || '' }}
+                <div class="job-tags" v-if="job.tags && job.tags.length > 0">
+                  <span v-for="tag in job.tags" :key="tag" class="tag">{{ tag }}</span>
                 </div>
+                <div class="job-requirements">
+                <span class="requirement-tag">{{ getLocation(job) }}</span>
+                <span class="requirement-tag">{{ job.experience }}</span>
+                <span class="requirement-tag">{{ job.education }}</span>
               </div>
+            </div>
+            <div class="job-bottom">
+              <div class="company-left">
+                <img
+                  v-if="getCompanyLogo(job)"
+                  :src="getCompanyLogo(job)"
+                  class="company-logo"
+                  @error="handleLogoError"
+                />
+                <div v-else class="company-logo-placeholder">
+                  {{ getCompanyName(job).charAt(0) }}
+                </div>
+                <span class="company-name">{{ getCompanyName(job) }}</span>
+              </div>
+              <span class="company-location">{{ getLocation(job) }}</span>
+            </div>
             </div>
           </template>
         </div>
@@ -147,7 +159,7 @@ const fetchFeaturedJobs = async (): Promise<void> => {
     const result = await jobApi.getJobList({ page: 1, size: 6 })
     featuredJobs.value = result.content.map((job) => ({
       ...job,
-      tags: typeof job.tags === 'string' ? (job.tags ? job.tags.split(',') : []) : (job.tags || []),
+      tags: typeof job.tags === 'string' ? (job.tags ? job.tags.split(',') : []) : job.tags || [],
     }))
   } catch (error) {
     console.error('获取精选职位失败:', error)
@@ -185,6 +197,44 @@ const goToJob = (jobId: number): void => {
   router.push(`/jobs/${jobId}`)
 }
 
+const getCompanyName = (job: Job): string => {
+  if (typeof job.company === 'object' && job.company) {
+    return job.company.name
+  }
+  return job.companyName || '未知公司'
+}
+
+const getCompanyLogo = (job: Job): string | undefined => {
+  if (typeof job.company === 'object' && job.company && job.company.logo) {
+    return job.company.logo
+  }
+  return undefined
+}
+
+const getLocation = (job: Job): string => {
+  if (job.city && job.district) {
+    return `${job.city}·${job.district}`
+  }
+  if (job.city) {
+    return job.city
+  }
+  if (typeof job.company === 'object' && job.company) {
+    const c = job.company
+    if (c.city && c.district) {
+      return `${c.city}·${c.district}`
+    }
+    if (c.city) {
+      return c.city
+    }
+  }
+  return ''
+}
+
+const handleLogoError = (e: Event): void => {
+  const img = e.target as HTMLImageElement
+  img.style.display = 'none'
+}
+
 onMounted(() => {
   fetchHotKeywords()
   fetchBanners()
@@ -197,7 +247,7 @@ onMounted(() => {
 
 .home-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #ffffff 25%);
+  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #f7f7f7 25%);
 }
 
 .search-section {
@@ -344,40 +394,44 @@ onMounted(() => {
 .jobs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: $spacing-sm;
+  gap: 12px;
   min-height: 200px;
 }
 
 .job-card {
-  background-color: $canvas;
-  border-radius: $rounded-xl;
-  padding: $spacing-xl;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
   cursor: pointer;
-  transition: box-shadow $transition-base;
-  border: 2px solid #ececec;
+  transition: box-shadow 0.2s;
+  border: none;
   min-width: 0;
 
   &:hover {
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
+}
+
+.job-top {
+  padding: 16px 14px 12px;
 }
 
 .job-header {
   display: flex;
   align-items: flex-start;
-  gap: $spacing-sm;
-  margin-bottom: $spacing-sm;
+  gap: 8px;
+  margin-bottom: 10px;
   min-width: 0;
 }
 
 .job-title {
   flex: 1;
   min-width: 0;
-  font-size: $body-md;
-  color: $ink;
+  font-size: 16px;
+  color: #222;
   margin: 0;
-  line-height: 1.5;
-  font-weight: 400;
+  line-height: 1.4;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -385,44 +439,87 @@ onMounted(() => {
 
 .salary {
   flex-shrink: 0;
-  font-size: $body-md;
+  font-size: 16px;
   color: #ff6b6b;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .job-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: $spacing-lg;
+  margin-bottom: 10px;
 }
 
 .tag {
-  padding: 4px 10px;
+  padding: 2px 6px;
   background-color: #f0f7f4;
-  border-radius: $rounded-sm;
-  font-size: $caption;
-  color: $body;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #52c41a;
   border: none;
 }
 
-.company-info {
+.job-requirements {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.requirement-tag {
+  padding: 2px 6px;
+  background-color: #f5f5f5;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #666;
+}
+
+.job-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $spacing-xs;
-  padding-top: $spacing-md;
-  border-top: 1px solid #f0f0f0;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: #F8FBFB;
+}
+
+.company-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.company-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.company-logo-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background-color: #e8f5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #52c41a;
+  font-weight: 500;
 }
 
 .company-name {
-  font-size: $caption;
-  color: $ink;
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
 }
 
-.company-detail {
-  font-size: 11px;
-  color: $mute;
+.company-location {
+  font-size: 12px;
+  color: #999;
 }
 
 .load-more {

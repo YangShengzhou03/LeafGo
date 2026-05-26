@@ -30,14 +30,18 @@ CREATE TABLE IF NOT EXISTS companies (
   scale VARCHAR(50),
   industry VARCHAR(100),
   description TEXT,
-  location VARCHAR(255),
+  province VARCHAR(50) COMMENT '省份',
+  city VARCHAR(50) COMMENT '城市',
+  district VARCHAR(50) COMMENT '区/县',
+  address VARCHAR(255) COMMENT '详细地址',
   website VARCHAR(255),
   verified BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_industry (industry),
-  INDEX idx_verified (verified)
+  INDEX idx_verified (verified),
+  INDEX idx_province_city (province, city)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 职位表
@@ -45,13 +49,15 @@ CREATE TABLE IF NOT EXISTS jobs (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   company_id BIGINT NOT NULL,
   title VARCHAR(100) NOT NULL,
-  location VARCHAR(255),
+  province VARCHAR(50) COMMENT '省份',
+  city VARCHAR(50) COMMENT '城市',
+  district VARCHAR(50) COMMENT '区/县',
+  address VARCHAR(255) COMMENT '详细地址',
   salary VARCHAR(50),
   job_type VARCHAR(50),
   experience VARCHAR(50),
   education VARCHAR(50),
   description TEXT,
-  requirements TEXT,
   benefits TEXT,
   tags TEXT,
   status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT 'ACTIVE, CLOSED, DRAFT',
@@ -60,7 +66,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,
   INDEX idx_status (status),
-  INDEX idx_location (location),
+  INDEX idx_province_city (province, city),
   FULLTEXT idx_title_description (title, description)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -152,16 +158,16 @@ INSERT INTO users (username, email, password, phone, user_type, status) VALUES
 ('赵六', 'zhaoliu@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13800138004', 'EMPLOYER', 'ACTIVE');
 
 -- 测试企业
-INSERT INTO companies (user_id, name, logo, scale, industry, description, location, website, verified) VALUES
-(3, '科技创新有限公司', 'https://example.com/logo1.png', '100-499人', '互联网/IT', '一家专注于人工智能和大数据的高科技企业', '北京市海淀区', 'https://tech-innovation.com', TRUE),
-(4, '智能制造集团', 'https://example.com/logo2.png', '500-999人', '制造业', '领先的智能制造解决方案提供商', '上海市浦东新区', 'https://smart-manufacturing.com', TRUE);
+INSERT INTO companies (user_id, name, logo, scale, industry, description, province, city, district, address, website, verified) VALUES
+(3, '科技创新有限公司', 'https://example.com/logo1.png', '100-499人', '互联网/IT', '一家专注于人工智能和大数据的高科技企业', '北京市', '北京市', '海淀区', '中关村科技园区', 'https://tech-innovation.com', TRUE),
+(4, '智能制造集团', 'https://example.com/logo2.png', '500-999人', '制造业', '领先的智能制造解决方案提供商', '上海市', '上海市', '浦东新区', '张江高科技园区', 'https://smart-manufacturing.com', TRUE);
 
 -- 测试职位
-INSERT INTO jobs (company_id, title, location, salary, job_type, experience, education, description, requirements, benefits, status) VALUES
-(1, '高级Java开发工程师', '北京市海淀区', '25k-40k', '全职', '3-5年', '本科', '负责核心系统开发和架构设计', '精通Java，熟悉Spring Boot，有分布式系统开发经验', '五险一金,年终奖,股票期权', 'ACTIVE'),
-(1, '前端开发工程师', '北京市海淀区', '20k-35k', '全职', '1-3年', '本科', '负责Web前端开发和优化', '熟练掌握Vue或React，有大型项目经验优先', '五险一金,弹性工作,免费三餐', 'ACTIVE'),
-(2, '产品经理', '上海市浦东新区', '20k-30k', '全职', '3-5年', '本科', '负责产品规划和需求分析', '有B端产品经验，熟悉制造业优先', '五险一金,带薪年假,节日福利', 'ACTIVE'),
-(2, '数据分析师', '上海市浦东新区', '15k-25k', '全职', '1-3年', '本科', '负责数据分析和报表开发', '熟练使用SQL和Python，有制造业数据分析经验优先', '五险一金,定期体检,员工旅游', 'ACTIVE');
+INSERT INTO jobs (company_id, title, province, city, district, address, salary, job_type, experience, education, description, benefits, status) VALUES
+(1, '高级Java开发工程师', '北京市', '北京市', '海淀区', '中关村科技园区', '25k-40k', '全职', '3-5年', '本科', '岗位职责：\n负责核心系统开发和架构设计\n参与技术方案评审和代码评审\n\n任职要求：\n精通Java，熟悉Spring Boot\n有分布式系统开发经验\n良好的沟通能力和团队协作精神', '五险一金,年终奖,股票期权', 'ACTIVE'),
+(1, '前端开发工程师', '北京市', '北京市', '海淀区', '中关村科技园区', '20k-35k', '全职', '1-3年', '本科', '岗位职责：\n负责Web前端开发和优化\n与产品经理、设计师紧密合作\n\n任职要求：\n熟练掌握Vue或React\n有大型项目经验优先\n熟悉前端工程化开发', '五险一金,弹性工作,免费三餐', 'ACTIVE'),
+(2, '产品经理', '上海市', '上海市', '浦东新区', '张江高科技园区', '20k-30k', '全职', '3-5年', '本科', '岗位职责：\n负责产品规划和需求分析\n推动产品迭代和优化\n\n任职要求：\n有B端产品经验\n熟悉制造业优先\n优秀的需求分析能力', '五险一金,带薪年假,节日福利', 'ACTIVE'),
+(2, '数据分析师', '上海市', '上海市', '浦东新区', '张江高科技园区', '15k-25k', '全职', '1-3年', '本科', '岗位职责：\n负责数据分析和报表开发\n为业务决策提供数据支持\n\n任职要求：\n熟练使用SQL和Python\n有制造业数据分析经验优先\n良好的数据敏感度', '五险一金,定期体检,员工旅游', 'ACTIVE');
 
 -- 测试轮播图数据
 INSERT INTO banners (title, description, image_url, link_url, sort_order, active) VALUES

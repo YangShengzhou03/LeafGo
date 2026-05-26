@@ -82,11 +82,25 @@
             class="enterprise-card"
             @click="goToCompany(enterprise.id)"
           >
-            <div class="enterprise-logo">{{ enterprise.name?.charAt(0) }}</div>
-            <div class="enterprise-info">
-              <div class="enterprise-name">{{ enterprise.name }}</div>
-              <div class="enterprise-jobs">{{ enterprise.jobCount }}个职位</div>
-              <div class="enterprise-location">{{ enterprise.location }}</div>
+            <div class="enterprise-header">
+              <div class="enterprise-logo">{{ enterprise.name?.charAt(0) }}</div>
+              <div class="enterprise-info">
+                <div class="enterprise-name">
+                  {{ enterprise.name }}
+                  <el-icon v-if="enterprise.verified" class="verified-icon">
+                    <CircleCheck />
+                  </el-icon>
+                </div>
+                <div class="enterprise-meta">
+                  <span>{{ enterprise.scale }}</span>
+                  <span class="sep">·</span>
+                  <span>{{ enterprise.industry }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="enterprise-location" v-if="getLocation(enterprise)">
+              <el-icon><Location /></el-icon>
+              {{ getLocation(enterprise) }}
             </div>
           </div>
         </div>
@@ -94,65 +108,6 @@
           v-if="!enterpriseLoading && enterprises.length === 0"
           description="暂无企业招聘"
         />
-      </div>
-
-      <div class="hot-jobs-section">
-        <div class="section-header">
-          <h2 class="section-title">热门校招</h2>
-          <div class="job-type-tabs">
-            <span
-              v-for="type in jobTypes"
-              :key="type"
-              class="job-type-tab"
-              :class="{ active: selectedJobType === type }"
-              @click="handleJobTypeChange(type)"
-            >
-              {{ type }}
-            </span>
-          </div>
-        </div>
-        <div class="jobs-grid" v-loading="jobsLoading">
-          <div v-for="job in jobs" :key="job.id" class="job-card" @click="goToJob(job.id)">
-            <div class="job-header">
-              <div class="job-title-row">
-                <span class="job-title">{{ job.title }}</span>
-                <span v-if="job.online" class="online-badge">在线</span>
-              </div>
-              <div class="salary">{{ job.salary }}</div>
-            </div>
-            <div class="job-meta">
-              <span>{{ job.location }}</span>
-              <span class="sep">·</span>
-              <span>{{ job.experience }}</span>
-              <span class="sep">·</span>
-              <span>{{ job.education }}</span>
-            </div>
-            <div class="job-skills" v-if="job.skills && job.skills.length > 0">
-              <span v-for="skill in job.skills" :key="skill" class="skill-tag">{{ skill }}</span>
-            </div>
-            <div class="company-row">
-              <div class="company-logo">{{ getCompanyInitial(job) }}</div>
-              <div class="company-info">
-                <div class="company-name">{{ getCompanyName(job) }}</div>
-                <div class="company-tags">
-                  <span class="company-tag">{{ job.industry }}</span>
-                  <span class="company-tag">{{ job.stage }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <el-empty v-if="!jobsLoading && jobs.length === 0" description="暂无热门校招" />
-
-        <div class="pagination-container" v-if="jobTotal > pageSize">
-          <el-pagination
-            v-model:current-page="currentPage"
-            :page-size="pageSize"
-            :total="jobTotal"
-            layout="prev, pager, next"
-            @current-change="handlePageChange"
-          />
-        </div>
       </div>
     </div>
 
@@ -163,12 +118,11 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { CircleCheck, Location } from '@element-plus/icons-vue'
 import NavBar from '@/components/NavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import { companyApi } from '@/api/company'
-import { jobApi } from '@/api/job'
-import type { Company, Job } from '@/types'
+import type { Company } from '@/types'
 
 defineOptions({
   name: 'CampusPage',
@@ -179,13 +133,8 @@ const router = useRouter()
 const searchKeyword = ref('')
 const activeTab = ref('campus')
 const selectedMajor = ref('')
-const selectedJobType = ref('综合')
-const currentPage = ref(1)
-const pageSize = ref(12)
-const jobTotal = ref(0)
 
 const enterpriseLoading = ref(false)
-const jobsLoading = ref(false)
 
 const tabs = [
   { label: '校招', value: 'campus' },
@@ -209,37 +158,18 @@ const majors = [
   '管理学',
 ]
 
-const jobTypes = ['综合', '管培生', '教师', '银行', '国企', '外企']
-
 const filters = reactive({
   major: '',
   category: '',
 })
 
 const enterprises = ref<Company[]>([])
-const jobs = ref<Job[]>([])
-
-const getCompanyName = (job: Job): string => {
-  if (typeof job.company === 'string') {
-    return job.company
-  }
-  return ''
-}
-
-const getCompanyInitial = (job: Job): string => {
-  const name = getCompanyName(job)
-  return name ? name.charAt(0) : ''
-}
 
 const fetchEnterprises = async (): Promise<void> => {
   try {
     enterpriseLoading.value = true
     const result = await companyApi.getCompanyList({ page: 1, size: 4 })
-    enterprises.value = result.content.map((company) => ({
-      ...company,
-      jobCount: company.jobCount || Math.floor(Math.random() * 50) + 1,
-      location: company.location || '南昌',
-    }))
+    enterprises.value = result.content
   } catch (error) {
     console.error('Failed to fetch enterprises:', error)
   } finally {
@@ -247,49 +177,24 @@ const fetchEnterprises = async (): Promise<void> => {
   }
 }
 
-const fetchJobs = async (): Promise<void> => {
-  try {
-    jobsLoading.value = true
-    const params = {
-      page: currentPage.value - 1,
-      size: pageSize.value,
-      keyword: searchKeyword.value || undefined,
-      jobType:
-        activeTab.value === 'campus' ? '校招' : activeTab.value === 'intern' ? '实习' : undefined,
-    }
-
-    const result = await jobApi.getJobList(params)
-    jobs.value = result.content.map((job) => ({
-      ...job,
-      online: Math.random() > 0.7,
-      skills: job.skills || [],
-      company: job.companyName || '',
-      industry: job.industry || '',
-      stage: job.stage || '',
-    })) as Job[]
-    jobTotal.value = result.totalElements
-  } catch (error) {
-    console.error('Failed to fetch jobs:', error)
-    ElMessage.error('获取职位列表失败')
-  } finally {
-    jobsLoading.value = false
+const getLocation = (company: { city?: string; district?: string }): string => {
+  if (company.city && company.district) {
+    return `${company.city}·${company.district}`
   }
+  if (company.city) {
+    return company.city
+  }
+  return '南昌'
 }
 
 const handleTabChange = (tab: string): void => {
   activeTab.value = tab
-  currentPage.value = 1
-  fetchJobs()
 }
 
 const handleSearch = (): void => {
-  currentPage.value = 1
-  fetchJobs()
 }
 
 const handleFilterChange = (): void => {
-  currentPage.value = 1
-  fetchJobs()
 }
 
 const handleMajorClick = (major: string): void => {
@@ -298,32 +203,14 @@ const handleMajorClick = (major: string): void => {
   } else {
     selectedMajor.value = major
   }
-  currentPage.value = 1
-  fetchJobs()
-}
-
-const handleJobTypeChange = (type: string): void => {
-  selectedJobType.value = type
-  currentPage.value = 1
-  fetchJobs()
-}
-
-const handlePageChange = (page: number): void => {
-  currentPage.value = page
-  fetchJobs()
 }
 
 const goToCompany = (companyId: number): void => {
   router.push(`/companies/${companyId}`)
 }
 
-const goToJob = (jobId: number): void => {
-  router.push(`/jobs/${jobId}`)
-}
-
 onMounted(() => {
   fetchEnterprises()
-  fetchJobs()
 })
 </script>
 
@@ -332,7 +219,7 @@ onMounted(() => {
 
 .campus-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #ffffff 25%);
+  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #f7f7f7 25%);
 }
 
 .page-container {
@@ -475,211 +362,73 @@ onMounted(() => {
 
 .enterprise-card {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
+  padding: 16px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  border: 1px solid #f0f0f0;
+}
 
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
+.enterprise-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .enterprise-logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
   background: linear-gradient(135deg, $primary-soft 0%, $primary 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 500;
   color: white;
-  margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .enterprise-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex: 1;
+  min-width: 0;
 }
 
 .enterprise-name {
   font-size: 15px;
   color: #222;
   font-weight: 500;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .verified-icon {
+    color: $primary;
+    font-size: 14px;
+  }
 }
 
-.enterprise-jobs {
-  font-size: 13px;
-  color: #ff6b6b;
+.enterprise-meta {
+  font-size: 12px;
+  color: #666;
+
+  .sep {
+    margin: 0 3px;
+    color: #ccc;
+  }
 }
 
 .enterprise-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   color: #999;
-}
 
-.hot-jobs-section {
-  margin-bottom: 24px;
-}
-
-.job-type-tabs {
-  display: flex;
-  gap: 8px;
-}
-
-.job-type-tab {
-  font-size: 14px;
-  color: #666;
-  padding: 4px 12px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-
-  &:hover {
+  .el-icon {
     color: $primary;
-    background: rgba($primary, 0.05);
+    font-size: 12px;
   }
-
-  &.active {
-    color: $primary;
-    background: rgba($primary, 0.1);
-    font-weight: 500;
-  }
-}
-
-.jobs-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  min-height: 200px;
-}
-
-.job-card {
-  background: white;
-  padding: 16px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-}
-
-.job-header {
-  margin-bottom: 8px;
-}
-
-.job-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.job-title {
-  font-size: 15px;
-  color: #222;
-  font-weight: 500;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.online-badge {
-  font-size: 12px;
-  color: #52c41a;
-  background: rgba(#52c41a, 0.1);
-  padding: 2px 6px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.salary {
-  font-size: 15px;
-  color: #ff6b6b;
-  font-weight: 500;
-}
-
-.job-meta {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 8px;
-
-  .sep {
-    margin: 0 6px;
-    color: #e0e0e0;
-  }
-}
-
-.job-skills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.skill-tag {
-  font-size: 12px;
-  color: #666;
-  padding: 2px 8px;
-  background: #f5f5f5;
-  border-radius: 2px;
-}
-
-.company-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid #f5f5f5;
-}
-
-.company-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, $primary-soft 0%, $primary 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: white;
-  flex-shrink: 0;
-}
-
-.company-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.company-name {
-  font-size: 13px;
-  color: #333;
-  margin-bottom: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.company-tags {
-  display: flex;
-  gap: 6px;
-}
-
-.company-tag {
-  font-size: 12px;
-  color: #999;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  padding: 24px 0;
 }
 </style>

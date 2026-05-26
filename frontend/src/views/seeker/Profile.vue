@@ -81,7 +81,6 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { userApi } from '@/api'
 import { useUserStore } from '@/store/user'
 import type { User } from '@/types'
 
@@ -109,34 +108,43 @@ const profileRules: FormRules = {
 }
 
 const handleSave = async (): Promise<void> => {
-  saving.value = true
-  try {
-    if (profileForm.username !== userStore.userInfo?.username || profileForm.phone !== userStore.userInfo?.phone) {
-      await userStore.updateUserInfo({
-        username: profileForm.username,
-        phone: profileForm.phone,
-      } as Partial<User>)
-      ElMessage.success('基本信息更新成功')
-    }
-    if (passwordForm.newPassword) {
-      if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-        ElMessage.error('两次密码不一致')
-        return
+  if (!profileFormRef.value) return
+  
+  await profileFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    
+    saving.value = true
+    try {
+      if (
+        profileForm.username !== userStore.userInfo?.username ||
+        profileForm.phone !== userStore.userInfo?.phone
+      ) {
+        await userStore.updateUserInfo({
+          username: profileForm.username,
+          phone: profileForm.phone,
+        } as Partial<User>)
+        ElMessage.success('基本信息更新成功')
       }
-      if (!passwordForm.oldPassword) {
-        ElMessage.error('请输入旧密码')
-        return
+      if (passwordForm.newPassword) {
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+          ElMessage.error('两次密码不一致')
+          return
+        }
+        if (!passwordForm.oldPassword) {
+          ElMessage.error('请输入旧密码')
+          return
+        }
+        ElMessage.success('密码修改成功')
+        passwordForm.oldPassword = ''
+        passwordForm.newPassword = ''
+        passwordForm.confirmPassword = ''
       }
-      ElMessage.success('密码修改成功')
-      passwordForm.oldPassword = ''
-      passwordForm.newPassword = ''
-      passwordForm.confirmPassword = ''
+    } catch {
+      ElMessage.error('保存失败')
+    } finally {
+      saving.value = false
     }
-  } catch (error) {
-    ElMessage.error('保存失败')
-  } finally {
-    saving.value = false
-  }
+  })
 }
 
 onMounted(() => {

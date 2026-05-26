@@ -15,8 +15,25 @@
         <el-input v-model="jobForm.title" placeholder="请输入职位名称" />
       </el-form-item>
 
-      <el-form-item label="工作地点" prop="location">
-        <el-input v-model="jobForm.location" placeholder="请输入工作地点" />
+      <el-form-item label="工作地点" required>
+        <el-row :gutter="10">
+          <el-col :span="8">
+            <el-form-item prop="province">
+              <el-input v-model="jobForm.province" placeholder="省份" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item prop="city">
+              <el-input v-model="jobForm.city" placeholder="城市" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item prop="district">
+              <el-input v-model="jobForm.district" placeholder="区/县" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-input v-model="jobForm.address" placeholder="详细地址（可选）" style="margin-top: 10px" />
       </el-form-item>
 
       <el-form-item label="薪资范围" prop="salary">
@@ -58,17 +75,8 @@
         <el-input
           v-model="jobForm.description"
           type="textarea"
-          :rows="6"
-          placeholder="请详细描述职位职责"
-        />
-      </el-form-item>
-
-      <el-form-item label="任职要求" prop="requirements">
-        <el-input
-          v-model="jobForm.requirements"
-          type="textarea"
-          :rows="6"
-          placeholder="请描述任职要求"
+          :rows="10"
+          placeholder="请详细描述职位职责和任职要求&#10;&#10;示例：&#10;岗位职责：&#10;负责核心系统开发和架构设计&#10;&#10;任职要求：&#10;精通Java，熟悉Spring Boot"
         />
       </el-form-item>
 
@@ -116,23 +124,24 @@ const submitting = ref(false)
 
 const jobForm = reactive({
   title: '',
-  location: '',
+  province: '',
+  city: '',
+  district: '',
+  address: '',
   salary: '',
   jobType: '',
   experience: '',
   education: '',
   description: '',
-  requirements: '',
   benefits: [] as string[],
 })
 
 const jobRules: FormRules = {
   title: [{ required: true, message: '请输入职位名称', trigger: 'blur' }],
-  location: [{ required: true, message: '请输入工作地点', trigger: 'blur' }],
+  city: [{ required: true, message: '请输入城市', trigger: 'blur' }],
   salary: [{ required: true, message: '请输入薪资范围', trigger: 'blur' }],
   jobType: [{ required: true, message: '请选择职位类型', trigger: 'change' }],
   description: [{ required: true, message: '请输入职位描述', trigger: 'blur' }],
-  requirements: [{ required: true, message: '请输入任职要求', trigger: 'blur' }],
 }
 
 const fetchJobDetail = async (): Promise<void> => {

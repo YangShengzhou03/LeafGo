@@ -12,7 +12,7 @@
               <el-tag v-if="job.education" type="info">{{ job.education }}</el-tag>
               <span class="location">
                 <el-icon><Location /></el-icon>
-                {{ job.location }}
+                {{ getLocation(job) }}
               </span>
             </div>
           </div>
@@ -31,11 +31,6 @@
             <div class="content-text">{{ job.description }}</div>
           </div>
 
-          <div class="content-section">
-            <h3>任职要求</h3>
-            <div class="content-text">{{ job.requirements }}</div>
-          </div>
-
           <div class="content-section" v-if="job.benefits && job.benefits.length > 0">
             <h3>福利待遇</h3>
             <div class="benefits-tags">
@@ -49,15 +44,15 @@
         <div class="company-section">
           <h3>公司信息</h3>
           <div class="company-card" @click="handleCompanyClick">
-            <img v-if="job.company?.logo" :src="job.company.logo" class="company-logo" />
+            <img v-if="companyInfo?.logo" :src="companyInfo.logo" class="company-logo" />
             <div v-else class="company-logo-placeholder">
-              {{ job.company?.name?.charAt(0) }}
+              {{ companyInfo?.name?.charAt(0) || '?' }}
             </div>
             <div class="company-info">
-              <div class="company-name">{{ job.company?.name }}</div>
+              <div class="company-name">{{ companyInfo?.name || job.companyName || '未知公司' }}</div>
               <div class="company-meta">
-                <span v-if="job.company?.industry">{{ job.company.industry }}</span>
-                <span v-if="job.company?.scale">· {{ job.company.scale }}</span>
+                <span v-if="companyInfo?.industry">{{ companyInfo.industry }}</span>
+                <span v-if="companyInfo?.scale">· {{ companyInfo.scale }}</span>
               </div>
             </div>
             <el-icon class="arrow-icon"><ArrowRight /></el-icon>
@@ -68,7 +63,7 @@
           <h3>工作地址</h3>
           <div class="address-text">
             <el-icon><Location /></el-icon>
-            {{ job.location }}
+            {{ getFullAddress(job) }}
           </div>
         </div>
       </div>
@@ -77,12 +72,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useJobStore } from '@/store/job'
 import { useUserStore } from '@/store/user'
-import type { Job } from '@/types'
+import type { Job, Company } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -94,18 +89,24 @@ const job = ref<Job>({
   id: 0,
   companyId: 0,
   title: '',
-  location: '',
   salary: '',
   jobType: '',
   experience: '',
   education: '',
   description: '',
-  requirements: '',
   benefits: [],
-  status: 'active',
+  status: 'ACTIVE',
   viewCount: 0,
   createdAt: '',
   updatedAt: '',
+})
+
+const companyInfo = computed<Company | null>(() => {
+  const c = job.value.company
+  if (typeof c === 'object' && c !== null) {
+    return c
+  }
+  return null
 })
 
 const fetchJobDetail = async (): Promise<void> => {
@@ -137,9 +138,51 @@ const handleCollect = (): void => {
 }
 
 const handleCompanyClick = (): void => {
-  if (job.value.company?.id) {
-    router.push(`/seeker/companies/${job.value.company.id}`)
+  if (companyInfo.value?.id) {
+    router.push(`/seeker/companies/${companyInfo.value.id}`)
   }
+}
+
+const getLocation = (job: Job): string => {
+  if (job.city && job.district) {
+    return `${job.city}·${job.district}`
+  }
+  if (job.city) {
+    return job.city
+  }
+  if (companyInfo.value) {
+    const c = companyInfo.value
+    if (c.city && c.district) {
+      return `${c.city}·${c.district}`
+    }
+    if (c.city) {
+      return c.city
+    }
+  }
+  return ''
+}
+
+const getFullAddress = (job: Job): string => {
+  const parts: string[] = []
+  if (job.province) parts.push(job.province)
+  if (job.city && job.city !== job.province) parts.push(job.city)
+  if (job.district) parts.push(job.district)
+  if (job.address) parts.push(job.address)
+  if (parts.length > 0) {
+    return parts.join(' ')
+  }
+  if (companyInfo.value) {
+    const c = companyInfo.value
+    const companyParts: string[] = []
+    if (c.province) companyParts.push(c.province)
+    if (c.city && c.city !== c.province) companyParts.push(c.city)
+    if (c.district) companyParts.push(c.district)
+    if (c.address) companyParts.push(c.address)
+    if (companyParts.length > 0) {
+      return companyParts.join(' ')
+    }
+  }
+  return ''
 }
 
 onMounted(() => {

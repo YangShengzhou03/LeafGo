@@ -16,15 +16,15 @@
         <div class="role-switch">
           <button
             type="button"
-            :class="{ active: userType === 'job_seeker' }"
-            @click="userType = 'job_seeker'"
+            :class="{ active: userType === 'JOB_SEEKER' }"
+            @click="userType = 'JOB_SEEKER'"
           >
             找工作
           </button>
           <button
             type="button"
-            :class="{ active: userType === 'employer' }"
-            @click="userType = 'employer'"
+            :class="{ active: userType === 'EMPLOYER' }"
+            @click="userType = 'EMPLOYER'"
           >
             招人才
           </button>
@@ -93,12 +93,12 @@ defineOptions({
   name: 'LoginPage',
 })
 
-type UserType = 'job_seeker' | 'employer'
+type UserType = 'JOB_SEEKER' | 'EMPLOYER'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const userType = ref<UserType>('job_seeker')
+const userType = ref<UserType>('JOB_SEEKER')
 const loading = ref(false)
 const agreed = ref(false)
 const codeSending = ref(false)
@@ -162,7 +162,7 @@ const submit = async (): Promise<void> => {
   try {
     try {
       const res = await userStore.login(form.phone, form.code)
-      router.push(res.userType === 'employer' ? '/employer' : '/seeker')
+      router.push(res.userType === 'EMPLOYER' ? '/employer' : '/seeker')
       ElMessage.success('登录成功')
     } catch {
       await userStore.register({
@@ -171,7 +171,7 @@ const submit = async (): Promise<void> => {
         code: form.code,
         userType: userType.value,
       })
-      router.push(userType.value === 'employer' ? '/employer' : '/seeker')
+      router.push(userType.value === 'EMPLOYER' ? '/employer' : '/seeker')
       ElMessage.success('注册成功')
     }
   } catch (error) {
@@ -302,7 +302,9 @@ const submit = async (): Promise<void> => {
     border-radius: $rounded-md;
     background: #fafafa;
     box-shadow: inset 0 0 0 1px #eee;
-    transition: box-shadow 0.2s, background 0.2s;
+    transition:
+      box-shadow 0.2s,
+      background 0.2s;
   }
 
   :deep(.el-input__wrapper:hover),
@@ -373,7 +375,9 @@ const submit = async (): Promise<void> => {
   border-color: $primary;
   font-size: 15px;
   letter-spacing: 0.5px;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 
   &:hover,
   &:focus {

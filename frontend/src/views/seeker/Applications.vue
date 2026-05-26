@@ -5,10 +5,10 @@
         <h2>投递记录</h2>
         <el-radio-group v-model="statusFilter" @change="handleFilter">
           <el-radio-button label="">全部</el-radio-button>
-          <el-radio-button label="pending">待查看</el-radio-button>
-          <el-radio-button label="viewed">已查看</el-radio-button>
-          <el-radio-button label="interview">面试邀请</el-radio-button>
-          <el-radio-button label="rejected">已拒绝</el-radio-button>
+          <el-radio-button label="PENDING">待查看</el-radio-button>
+          <el-radio-button label="VIEWED">已查看</el-radio-button>
+          <el-radio-button label="INTERVIEW">面试邀请</el-radio-button>
+          <el-radio-button label="REJECTED">已拒绝</el-radio-button>
         </el-radio-group>
       </div>
 
@@ -95,27 +95,25 @@ const handlePageChange = (page: number): void => {
 }
 
 const getStatusType = (status: string): TagType => {
-  const s = status.toLowerCase()
   const types: Record<string, TagType> = {
-    pending: 'info',
-    viewed: 'warning',
-    interview: 'success',
-    rejected: 'danger',
-    accepted: 'success',
+    PENDING: 'info',
+    VIEWED: 'warning',
+    INTERVIEW: 'success',
+    REJECTED: 'danger',
+    ACCEPTED: 'success',
   }
-  return types[s] || 'info'
+  return types[status] || 'info'
 }
 
 const getStatusText = (status: string): string => {
-  const s = status.toLowerCase()
   const texts: Record<string, string> = {
-    pending: '待查看',
-    viewed: '已查看',
-    interview: '面试邀请',
-    rejected: '已拒绝',
-    accepted: '已录用',
+    PENDING: '待查看',
+    VIEWED: '已查看',
+    INTERVIEW: '面试邀请',
+    REJECTED: '已拒绝',
+    ACCEPTED: '已录用',
   }
-  return texts[s] || status
+  return texts[status] || status
 }
 
 const formatTime = (time: string): string => {

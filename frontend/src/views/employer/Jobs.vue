@@ -11,9 +11,9 @@
     <div class="filter-bar">
       <el-radio-group v-model="statusFilter" @change="handleFilter">
         <el-radio-button label="">全部</el-radio-button>
-        <el-radio-button label="active">招聘中</el-radio-button>
-        <el-radio-button label="closed">已关闭</el-radio-button>
-        <el-radio-button label="draft">草稿</el-radio-button>
+        <el-radio-button label="ACTIVE">招聘中</el-radio-button>
+        <el-radio-button label="CLOSED">已关闭</el-radio-button>
+        <el-radio-button label="DRAFT">草稿</el-radio-button>
       </el-radio-group>
     </div>
 
@@ -111,7 +111,7 @@ const handleEdit = (job: Job): void => {
 }
 
 const toggleStatus = async (job: Job): Promise<void> => {
-  const newStatus = job.status === 'ACTIVE' ? 'closed' : 'active'
+  const newStatus = job.status === 'ACTIVE' ? 'CLOSED' : 'ACTIVE'
   await jobApi.updateJob(job.id, { status: newStatus } as Partial<Job>)
   ElMessage.success('状态更新成功')
   fetchJobs()
@@ -129,23 +129,21 @@ const handleDelete = async (job: Job): Promise<void> => {
 type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
 
 const getStatusType = (status: string): TagType => {
-  const s = status.toLowerCase()
   const types: Record<string, TagType> = {
-    active: 'success',
-    closed: 'info',
-    draft: 'warning',
+    ACTIVE: 'success',
+    CLOSED: 'info',
+    DRAFT: 'warning',
   }
-  return types[s] || 'info'
+  return types[status] || 'info'
 }
 
 const getStatusText = (status: string): string => {
-  const s = status.toLowerCase()
   const texts: Record<string, string> = {
-    active: '招聘中',
-    closed: '已关闭',
-    draft: '草稿',
+    ACTIVE: '招聘中',
+    CLOSED: '已关闭',
+    DRAFT: '草稿',
   }
-  return texts[s] || status
+  return texts[status] || status
 }
 
 const formatTime = (time: string): string => {

@@ -52,8 +52,25 @@
         </el-col>
       </el-row>
 
-      <el-form-item label="公司地址" prop="location">
-        <el-input v-model="companyForm.location" placeholder="请输入公司地址" />
+      <el-form-item label="公司地址" required>
+        <el-row :gutter="10">
+          <el-col :span="8">
+            <el-form-item prop="province">
+              <el-input v-model="companyForm.province" placeholder="省份" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item prop="city">
+              <el-input v-model="companyForm.city" placeholder="城市" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item prop="district">
+              <el-input v-model="companyForm.district" placeholder="区/县" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-input v-model="companyForm.address" placeholder="详细地址（可选）" style="margin-top: 10px" />
       </el-form-item>
 
       <el-form-item label="公司官网">
@@ -95,7 +112,10 @@ const companyForm = reactive({
   logo: '',
   scale: '',
   industry: '',
-  location: '',
+  province: '',
+  city: '',
+  district: '',
+  address: '',
   website: '',
   description: '',
 })
@@ -104,7 +124,7 @@ const companyRules: FormRules = {
   name: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
   scale: [{ required: true, message: '请选择企业规模', trigger: 'change' }],
   industry: [{ required: true, message: '请选择所属行业', trigger: 'change' }],
-  location: [{ required: true, message: '请输入公司地址', trigger: 'blur' }],
+  city: [{ required: true, message: '请输入城市', trigger: 'blur' }],
   description: [{ required: true, message: '请输入公司简介', trigger: 'blur' }],
 }
 

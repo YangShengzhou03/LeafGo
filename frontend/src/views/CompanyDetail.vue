@@ -74,7 +74,7 @@
                         <span class="sep">·</span>
                         <span>{{ job.education }}</span>
                         <span class="sep">·</span>
-                        <span>{{ job.location }}</span>
+                        <span>{{ getLocation(job) }}</span>
                       </div>
                     </div>
                   </div>
@@ -97,7 +97,7 @@
                       <div class="job-main">
                         <div class="job-header">
                           <h4>{{ job.title }}</h4>
-                          <span class="job-location">[{{ job.location }}]</span>
+                          <span class="job-location">[{{ getLocation(job) }}]</span>
                         </div>
                         <div class="job-info">
                           <span class="salary">{{ job.salary }}</span>
@@ -189,7 +189,7 @@
               <div class="address-info">
                 <div class="address-item">
                   <el-icon><Location /></el-icon>
-                  <span>{{ company.location || '暂无地址信息' }}</span>
+                  <span>{{ getCompanyAddress(company) }}</span>
                 </div>
               </div>
             </div>
@@ -273,6 +273,15 @@ const bossList = ref<Boss[]>([
 
 const bossCount = computed(() => bossList.value.length)
 
+const getCompanyAddress = (company: Company): string => {
+  const parts: string[] = []
+  if (company.province) parts.push(company.province)
+  if (company.city) parts.push(company.city)
+  if (company.district) parts.push(company.district)
+  if (company.address) parts.push(company.address)
+  return parts.length > 0 ? parts.join(' ') : '暂无地址信息'
+}
+
 const hotJobs = computed(() => jobs.value.slice(0, 3))
 
 const displayedJobs = computed(() => {
@@ -330,6 +339,25 @@ const communicateWithBoss = (_boss: Boss): void => {
 const formatDate = (dateStr: string): string => {
   if (!dateStr) return '-'
   return new Date(dateStr).toLocaleDateString('zh-CN')
+}
+
+const getLocation = (job: Job): string => {
+  if (job.city && job.district) {
+    return `${job.city}·${job.district}`
+  }
+  if (job.city) {
+    return job.city
+  }
+  if (typeof job.company === 'object' && job.company) {
+    const c = job.company
+    if (c.city && c.district) {
+      return `${c.city}·${c.district}`
+    }
+    if (c.city) {
+      return c.city
+    }
+  }
+  return ''
 }
 
 onMounted(() => {

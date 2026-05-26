@@ -7,10 +7,10 @@
     <div class="filter-bar">
       <el-radio-group v-model="statusFilter" @change="handleFilter">
         <el-radio-button label="">全部</el-radio-button>
-        <el-radio-button label="pending">待查看</el-radio-button>
-        <el-radio-button label="viewed">已查看</el-radio-button>
-        <el-radio-button label="interview">面试邀请</el-radio-button>
-        <el-radio-button label="rejected">已拒绝</el-radio-button>
+        <el-radio-button label="PENDING">待查看</el-radio-button>
+        <el-radio-button label="VIEWED">已查看</el-radio-button>
+        <el-radio-button label="INTERVIEW">面试邀请</el-radio-button>
+        <el-radio-button label="REJECTED">已拒绝</el-radio-button>
       </el-radio-group>
     </div>
 
@@ -40,7 +40,7 @@
             type="success"
             text
             size="small"
-            @click="updateStatus(row, 'interview')"
+            @click="updateStatus(row, 'INTERVIEW')"
             v-if="row.status === 'PENDING' || row.status === 'VIEWED'"
           >
             邀请面试
@@ -49,7 +49,7 @@
             type="danger"
             text
             size="small"
-            @click="updateStatus(row, 'rejected')"
+            @click="updateStatus(row, 'REJECTED')"
             v-if="row.status !== 'REJECTED'"
           >
             拒绝
@@ -214,7 +214,7 @@ const viewResume = async (app: Application): Promise<void> => {
     const resume = await resumeApi.getResume(app.userId)
     resumeData.value = resume
     if (app.status === 'PENDING') {
-      await applicationApi.updateApplicationStatus(app.id, 'viewed')
+      await applicationApi.updateApplicationStatus(app.id, 'VIEWED')
       fetchCandidates()
     }
   } catch {
@@ -233,25 +233,25 @@ const updateStatus = async (app: Application, status: string): Promise<void> => 
 type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
 
 const getStatusType = (status: string): TagType => {
-  const s = status.toLowerCase()
   const types: Record<string, TagType> = {
-    pending: 'info',
-    viewed: 'warning',
-    interview: 'success',
-    rejected: 'danger',
+    PENDING: 'info',
+    VIEWED: 'warning',
+    INTERVIEW: 'success',
+    REJECTED: 'danger',
+    ACCEPTED: 'success',
   }
-  return types[s] || 'info'
+  return types[status] || 'info'
 }
 
 const getStatusText = (status: string): string => {
-  const s = status.toLowerCase()
   const texts: Record<string, string> = {
-    pending: '待查看',
-    viewed: '已查看',
-    interview: '面试',
-    rejected: '已拒绝',
+    PENDING: '待查看',
+    VIEWED: '已查看',
+    INTERVIEW: '面试',
+    REJECTED: '已拒绝',
+    ACCEPTED: '已录用',
   }
-  return texts[s] || status
+  return texts[status] || status
 }
 
 const formatTime = (time: string): string => {

@@ -60,7 +60,7 @@ defineOptions({
 
 .page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #f7f7f7 25%);
 }
 
 .container {

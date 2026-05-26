@@ -34,8 +34,17 @@ public class Company {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(length = 50)
+    private String province;
+
+    @Column(length = 50)
+    private String city;
+
+    @Column(length = 50)
+    private String district;
+
     @Column(length = 255)
-    private String location;
+    private String address;
 
     @Column(length = 255)
     private String website;

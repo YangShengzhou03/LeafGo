@@ -21,8 +21,8 @@
       <el-table-column prop="phone" label="手机号" width="130" />
       <el-table-column prop="userType" label="用户类型" width="120">
         <template #default="{ row }">
-          <el-tag :type="row.userType === 'job_seeker' ? 'primary' : 'success'">
-            {{ row.userType === 'job_seeker' ? '求职者' : '招聘者' }}
+          <el-tag :type="row.userType === 'JOB_SEEKER' ? 'primary' : 'success'">
+            {{ row.userType === 'JOB_SEEKER' ? '求职者' : '招聘者' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -41,14 +41,14 @@
       <el-table-column label="操作" fixed="right" width="200">
         <template #default="{ row }">
           <el-button type="primary" text size="small">查看</el-button>
-            <el-button
-              :type="row.status === 'ACTIVE' ? 'danger' : 'success'"
-              text
-              size="small"
-              @click="toggleStatus(row)"
-            >
-              {{ row.status === 'ACTIVE' ? '禁用' : '启用' }}
-            </el-button>
+          <el-button
+            :type="row.status === 'ACTIVE' ? 'danger' : 'success'"
+            text
+            size="small"
+            @click="toggleStatus(row)"
+          >
+            {{ row.status === 'ACTIVE' ? '禁用' : '启用' }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>

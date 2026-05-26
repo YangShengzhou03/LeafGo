@@ -17,8 +17,18 @@
           class="company-card"
           @click="$router.push(`/seeker/companies/${company.id}`)"
         >
-          <div class="company-name">{{ company.name }}</div>
-          <div class="company-meta">{{ company.industry }} · {{ company.scale }}</div>
+          <div class="company-header">
+            <div class="company-logo">{{ company.name?.charAt(0) }}</div>
+            <div class="company-info">
+              <div class="company-name">
+                {{ company.name }}
+                <el-icon v-if="company.verified" class="verified-icon">
+                  <CircleCheck />
+                </el-icon>
+              </div>
+              <div class="company-meta">{{ company.industry }} · {{ company.scale }}</div>
+            </div>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -30,18 +40,19 @@ defineOptions({
   name: 'SeekerCompanies',
 })
 import { ref } from 'vue'
+import { CircleCheck } from '@element-plus/icons-vue'
 
 const searchKeyword = ref('')
 
 const companyList = ref([
-  { id: 1, name: '科技公司', industry: '互联网', scale: '100-500人' },
-  { id: 2, name: '互联网公司', industry: '电子商务', scale: '500-1000人' },
-  { id: 3, name: '金融公司', industry: '金融', scale: '1000人以上' },
-  { id: 4, name: '教育公司', industry: '教育', scale: '100-500人' },
-  { id: 5, name: '医疗公司', industry: '医疗健康', scale: '500-1000人' },
-  { id: 6, name: '制造业公司', industry: '制造业', scale: '1000人以上' },
-  { id: 7, name: '咨询公司', industry: '咨询', scale: '100-500人' },
-  { id: 8, name: '传媒公司', industry: '传媒', scale: '100-500人' },
+  { id: 1, name: '科技公司', industry: '互联网', scale: '100-500人', verified: true },
+  { id: 2, name: '互联网公司', industry: '电子商务', scale: '500-1000人', verified: true },
+  { id: 3, name: '金融公司', industry: '金融', scale: '1000人以上', verified: false },
+  { id: 4, name: '教育公司', industry: '教育', scale: '100-500人', verified: true },
+  { id: 5, name: '医疗公司', industry: '医疗健康', scale: '500-1000人', verified: false },
+  { id: 6, name: '制造业公司', industry: '制造业', scale: '1000人以上', verified: true },
+  { id: 7, name: '咨询公司', industry: '咨询', scale: '100-500人', verified: false },
+  { id: 8, name: '传媒公司', industry: '传媒', scale: '100-500人', verified: true },
 ])
 </script>
 
@@ -59,15 +70,49 @@ const companyList = ref([
   margin-bottom: 20px;
   cursor: pointer;
 
+  .company-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .company-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e8f5e9 0%, #4caf50 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 500;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .company-info {
+    flex: 1;
+    min-width: 0;
+  }
+
   .company-name {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #222;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .verified-icon {
+      color: #4caf50;
+      font-size: 14px;
+    }
   }
 
   .company-meta {
     color: #666;
-    font-size: 12px;
+    font-size: 13px;
   }
 }
 </style>

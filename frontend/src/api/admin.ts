@@ -13,7 +13,11 @@ export const adminApi = {
     return request.get('/admin/stats')
   },
 
-  getUsers: (params: { page?: number; size?: number; keyword?: string }): Promise<PageData<User>> => {
+  getUsers: (params: {
+    page?: number
+    size?: number
+    keyword?: string
+  }): Promise<PageData<User>> => {
     return request.get('/admin/users', { params })
   },
 
