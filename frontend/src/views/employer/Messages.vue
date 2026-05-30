@@ -62,7 +62,9 @@
               <div class="message-time">{{ formatTime(msg.createdAt) }}</div>
             </div>
           </div>
-          <el-empty v-if="messages.length === 0" description="暂无消息记录" />
+          <div v-if="messages.length === 0" class="empty-messages">
+            <el-empty description="暂无消息记录" />
+          </div>
         </div>
 
         <div class="chat-input" v-if="activeConversation">
@@ -79,6 +81,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
+import { ChatDotRound } from '@element-plus/icons-vue'
 import { messageApi } from '@/api'
 import { useUserStore } from '@/store/user'
 import type { Conversation, Message } from '@/types'
@@ -268,6 +271,13 @@ onMounted(() => {
         padding: 20px;
         display: flex;
         flex-direction: column;
+
+        .empty-messages {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
 
         .message-item {
           display: flex;

@@ -33,7 +33,11 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-input v-model="jobForm.address" placeholder="详细地址（可选）" style="margin-top: 10px" />
+        <el-input
+          v-model="jobForm.address"
+          placeholder="详细地址（可选）"
+          style="margin-top: 10px"
+        />
       </el-form-item>
 
       <el-form-item label="薪资范围" prop="salary">

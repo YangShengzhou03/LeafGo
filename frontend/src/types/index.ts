@@ -24,6 +24,9 @@ export interface Company {
   address?: string
   website?: string
   verified: boolean
+  benefits?: string
+  workTime?: string
+  bossInfo?: string
   jobCount?: number
   createdAt: string
   updatedAt: string
@@ -60,15 +63,31 @@ export interface Resume {
   id: number
   userId: number
   name: string
+  gender?: string
+  birthday?: string
   phone: string
   email: string
   avatar?: string
+  location?: string
+  jobIntention?: string
+  jobStatus?: string
+  expectedSalary?: string
   selfIntroduction?: string
   education: Education[] | string
   workExperience: WorkExperience[] | string
+  projectExperience?: ProjectExperience[] | string
+  certificates?: string[] | string
   skills: Skill[] | string
   createdAt: string
   updatedAt: string
+}
+
+export interface ProjectExperience {
+  name: string
+  time: string
+  role: string
+  description: string
+  tags?: string[]
 }
 
 export interface Education {

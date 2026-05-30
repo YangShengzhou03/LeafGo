@@ -72,6 +72,14 @@
 
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
+import {
+  User,
+  OfficeBuilding,
+  Briefcase,
+  Document,
+  TrendCharts,
+  PieChart,
+} from '@element-plus/icons-vue'
 import { adminApi } from '@/api/admin'
 
 defineOptions({

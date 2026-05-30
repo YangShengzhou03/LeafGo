@@ -36,6 +36,9 @@ CREATE TABLE IF NOT EXISTS companies (
   address VARCHAR(255) COMMENT '详细地址',
   website VARCHAR(255),
   verified BOOLEAN DEFAULT FALSE,
+  benefits TEXT COMMENT '福利待遇，JSON数组格式',
+  work_time VARCHAR(100) COMMENT '工作时间',
+  boss_info TEXT COMMENT 'Boss信息，JSON数组格式',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -75,12 +78,20 @@ CREATE TABLE IF NOT EXISTS resumes (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   user_id BIGINT NOT NULL UNIQUE,
   name VARCHAR(50) NOT NULL,
+  gender VARCHAR(10),
+  birthday VARCHAR(20),
   phone VARCHAR(20),
   email VARCHAR(100),
   avatar VARCHAR(255),
+  location VARCHAR(100),
+  job_intention VARCHAR(100),
+  job_status VARCHAR(50),
+  expected_salary VARCHAR(50),
   self_introduction TEXT,
   education TEXT,
   work_experience TEXT,
+  project_experience TEXT,
+  certificates TEXT,
   skills TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -150,6 +161,19 @@ CREATE TABLE IF NOT EXISTS banners (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 收藏表
+CREATE TABLE IF NOT EXISTS favorites (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  user_id BIGINT NOT NULL,
+  job_id BIGINT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+  UNIQUE KEY uk_user_job (user_id, job_id),
+  INDEX idx_user_id (user_id),
+  INDEX idx_job_id (job_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 插入测试数据
 INSERT INTO users (username, email, password, phone, user_type, status) VALUES
 ('张三', 'zhangsan@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13800138001', 'JOB_SEEKER', 'ACTIVE'),
@@ -158,9 +182,9 @@ INSERT INTO users (username, email, password, phone, user_type, status) VALUES
 ('赵六', 'zhaoliu@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13800138004', 'EMPLOYER', 'ACTIVE');
 
 -- 测试企业
-INSERT INTO companies (user_id, name, logo, scale, industry, description, province, city, district, address, website, verified) VALUES
-(3, '科技创新有限公司', 'https://example.com/logo1.png', '100-499人', '互联网/IT', '一家专注于人工智能和大数据的高科技企业', '北京市', '北京市', '海淀区', '中关村科技园区', 'https://tech-innovation.com', TRUE),
-(4, '智能制造集团', 'https://example.com/logo2.png', '500-999人', '制造业', '领先的智能制造解决方案提供商', '上海市', '上海市', '浦东新区', '张江高科技园区', 'https://smart-manufacturing.com', TRUE);
+INSERT INTO companies (user_id, name, logo, scale, industry, description, province, city, district, address, website, verified, benefits, work_time, boss_info) VALUES
+(3, '科技创新有限公司', 'https://example.com/logo1.png', '100-499人', '互联网/IT', '一家专注于人工智能和大数据的高科技企业', '北京市', '北京市', '海淀区', '中关村科技园区', 'https://tech-innovation.com', TRUE, '["五险一金","年终奖","股票期权","弹性工作","免费三餐","定期体检"]', '上午09:00 - 下午06:00 双休', '[{"id":1,"name":"张经理","position":"技术总监","hiring":"高级Java开发工程师"},{"id":2,"name":"李女士","position":"HR经理","hiring":"前端开发工程师"}]'),
+(4, '智能制造集团', 'https://example.com/logo2.png', '500-999人', '制造业', '领先的智能制造解决方案提供商', '上海市', '上海市', '浦东新区', '张江高科技园区', 'https://smart-manufacturing.com', TRUE, '["五险一金","带薪年假","节日福利","餐补","全勤奖","员工旅游"]', '上午08:30 - 下午05:30 偶尔加班', '[{"id":1,"name":"王总","position":"运营总监","hiring":"产品经理"},{"id":2,"name":"赵女士","position":"招聘主管","hiring":"数据分析师"}]');
 
 -- 测试职位
 INSERT INTO jobs (company_id, title, province, city, district, address, salary, job_type, experience, education, description, benefits, status) VALUES

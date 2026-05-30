@@ -63,15 +63,17 @@
 </template>
 
 <script setup lang="ts">
-defineOptions({
-  name: 'EmployerJobs',
-})
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { jobApi } from '@/api'
 import type { Job } from '@/types'
 import dayjs from 'dayjs'
+
+defineOptions({
+  name: 'EmployerJobs',
+})
 
 const router = useRouter()
 const loading = ref(false)

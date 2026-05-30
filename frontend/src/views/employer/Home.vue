@@ -97,13 +97,15 @@
 </template>
 
 <script setup lang="ts">
-defineOptions({
-  name: 'EmployerHome',
-})
 import { ref, reactive, onMounted } from 'vue'
+import { Briefcase, User, View, ChatDotRound, Plus, Edit } from '@element-plus/icons-vue'
 import { applicationApi } from '@/api'
 import type { Application } from '@/types'
 import dayjs from 'dayjs'
+
+defineOptions({
+  name: 'EmployerHome',
+})
 
 const stats = reactive({
   jobCount: 12,

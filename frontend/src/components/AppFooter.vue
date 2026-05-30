@@ -5,7 +5,7 @@
         <div class="link-group">
           <h4>企业服务</h4>
           <router-link to="/jobs">职位搜索</router-link>
-          <router-link to="/enterprise-service">LeafGO APP</router-link>
+          <router-link to="/app">LeafGO APP</router-link>
           <router-link to="/investor-relations">投资者关系</router-link>
         </div>
         <div class="link-group">
@@ -13,7 +13,6 @@
           <router-link to="/terms">用户协议</router-link>
           <router-link to="/privacy-policy">隐私政策</router-link>
           <router-link to="/anti-fraud">防骗指南</router-link>
-          <router-link to="/help">使用帮助</router-link>
         </div>
         <div class="link-group">
           <h4>联系我们</h4>

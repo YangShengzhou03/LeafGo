@@ -12,6 +12,24 @@ export const useUserStore = defineStore('user', () => {
   const isJobSeeker = computed(() => userInfo.value?.userType === 'JOB_SEEKER')
   const isEmployer = computed(() => userInfo.value?.userType === 'EMPLOYER')
 
+  const initUser = async (): Promise<void> => {
+    const savedUserId = localStorage.getItem('userId')
+    const savedUserType = localStorage.getItem('userType') as 'JOB_SEEKER' | 'EMPLOYER' | null
+
+    if (token.value && savedUserId) {
+      try {
+        const user = await userApi.getUserInfo(Number(savedUserId))
+        userInfo.value = user
+        if (user.userType !== savedUserType) {
+          localStorage.setItem('userType', user.userType)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user info:', error)
+        logout()
+      }
+    }
+  }
+
   const login = async (
     phone: string,
     code: string
@@ -19,6 +37,8 @@ export const useUserStore = defineStore('user', () => {
     const data = await authApi.login({ phone, code })
     token.value = data.token
     localStorage.setItem('token', data.token)
+    localStorage.setItem('userId', String(data.userId))
+    localStorage.setItem('userType', data.userType)
     await fetchUserInfo(data.userId)
     return data
   }
@@ -28,10 +48,12 @@ export const useUserStore = defineStore('user', () => {
     phone: string
     code: string
     userType: 'JOB_SEEKER' | 'EMPLOYER'
-  }): Promise<{ userId: number; token: string }> => {
+  }): Promise<{ userId: number; token: string; userType: string }> => {
     const res = await authApi.register(data)
     token.value = res.token
     localStorage.setItem('token', res.token)
+    localStorage.setItem('userId', String(res.userId))
+    localStorage.setItem('userType', res.userType)
     await fetchUserInfo(res.userId)
     return res
   }
@@ -46,6 +68,8 @@ export const useUserStore = defineStore('user', () => {
     token.value = ''
     userInfo.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userType')
     router.push('/login')
   }
 
@@ -62,6 +86,7 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     isJobSeeker,
     isEmployer,
+    initUser,
     login,
     register,
     fetchUserInfo,

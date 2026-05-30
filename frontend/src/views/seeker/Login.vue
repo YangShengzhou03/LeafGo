@@ -10,7 +10,7 @@
       <section class="form-panel">
         <div class="form-head">
           <h4>验证码登录/注册</h4>
-          <p>首次验证通过即注册 LeafGO 账号</p>
+          <p>首次验证通过即注册LeafGO 账号</p>
         </div>
 
         <div class="role-switch">
@@ -162,8 +162,20 @@ const submit = async (): Promise<void> => {
   try {
     try {
       const res = await userStore.login(form.phone, form.code)
-      router.push(res.userType === 'EMPLOYER' ? '/employer' : '/seeker')
+      const actualUserType = res.userType
+
+      if (actualUserType !== userType.value) {
+        const roleText = actualUserType === 'EMPLOYER' ? '招聘者' : '求职者'
+        ElMessage.warning(`该账号是${roleText}账号，已为您跳转到对应界面`)
+      }
+
       ElMessage.success('登录成功')
+
+      if (actualUserType === 'EMPLOYER') {
+        router.push('/employer')
+      } else {
+        router.push('/')
+      }
     } catch {
       await userStore.register({
         username: form.phone,
@@ -171,8 +183,13 @@ const submit = async (): Promise<void> => {
         code: form.code,
         userType: userType.value,
       })
-      router.push(userType.value === 'EMPLOYER' ? '/employer' : '/seeker')
       ElMessage.success('注册成功')
+
+      if (userType.value === 'EMPLOYER') {
+        router.push('/employer')
+      } else {
+        router.push('/')
+      }
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : '操作失败，请稍后重试'

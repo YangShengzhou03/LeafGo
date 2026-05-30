@@ -70,7 +70,11 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-input v-model="companyForm.address" placeholder="详细地址（可选）" style="margin-top: 10px" />
+        <el-input
+          v-model="companyForm.address"
+          placeholder="详细地址（可选）"
+          style="margin-top: 10px"
+        />
       </el-form-item>
 
       <el-form-item label="公司官网">
@@ -94,14 +98,16 @@
 </template>
 
 <script setup lang="ts">
-defineOptions({
-  name: 'EmployerCompany',
-})
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { companyApi } from '@/api'
 import type { Company } from '@/types'
+
+defineOptions({
+  name: 'EmployerCompany',
+})
 
 const companyFormRef = ref<FormInstance>()
 const submitting = ref(false)

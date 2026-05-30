@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <NavBar />
+    <SeekerNavBar />
     <div class="container">
       <div class="card">
         <h1>下载 APP</h1>
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import NavBar from '@/components/NavBar.vue'
+import SeekerNavBar from '@/components/SeekerNavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 
 defineOptions({

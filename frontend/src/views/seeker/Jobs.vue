@@ -1,123 +1,798 @@
 <template>
-  <div class="seeker-jobs">
-    <el-row :gutter="20">
-      <el-col :span="24">
-        <el-input v-model="searchKeyword" placeholder="搜索职位" size="large">
-          <template #append>
-            <el-button type="primary">搜索</el-button>
-          </template>
-        </el-input>
-      </el-col>
-    </el-row>
+  <div class="jobs-page">
+    <SeekerNavBar />
 
-    <el-row :gutter="20" class="section">
-      <el-col :span="8" v-for="job in jobList" :key="job.id">
-        <el-card shadow="hover" class="job-card" @click="$router.push(`/seeker/jobs/${job.id}`)">
-          <div class="job-title">{{ job.title }}</div>
-          <div class="job-salary">{{ job.salary }}</div>
-          <div class="job-meta">{{ job.city }} · {{ job.experience }}</div>
-          <div class="company-name">{{ job.company }}</div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <div class="page-container">
+      <div class="search-filter-bar">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索职位、公司"
+          class="search-input"
+          @keyup.enter="handleSearch"
+          clearable
+        />
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <span class="filter-label">薪资待遇</span>
+          <el-select
+            v-model="filters.salary"
+            placeholder="不限"
+            class="filter-select"
+            @change="handleFilterChange"
+          >
+            <el-option label="不限" value="" />
+            <el-option label="3-5K" value="3-5K" />
+            <el-option label="5-10K" value="5-10K" />
+            <el-option label="10-20K" value="10-20K" />
+            <el-option label="20K以上" value="20K+" />
+          </el-select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">工作经验</span>
+          <el-select
+            v-model="filters.experience"
+            placeholder="不限"
+            class="filter-select"
+            @change="handleFilterChange"
+          >
+            <el-option label="不限" value="" />
+            <el-option label="在校/应届" value="在校/应届" />
+            <el-option label="1-3年" value="1-3年" />
+            <el-option label="3-5年" value="3-5年" />
+            <el-option label="5-10年" value="5-10年" />
+          </el-select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">学历要求</span>
+          <el-select
+            v-model="filters.education"
+            placeholder="不限"
+            class="filter-select"
+            @change="handleFilterChange"
+          >
+            <el-option label="不限" value="" />
+            <el-option label="大专" value="大专" />
+            <el-option label="本科" value="本科" />
+            <el-option label="硕士" value="硕士" />
+            <el-option label="博士" value="博士" />
+          </el-select>
+        </div>
+        <el-button text @click="clearFilters">清空筛选</el-button>
+      </div>
+
+      <div class="main-content" v-loading="loading">
+        <div class="jobs-list">
+          <div v-if="jobs.length === 0 && !loading" class="empty-state">
+            <el-empty description="暂无符合条件的职位" />
+          </div>
+          <template v-else>
+            <template v-if="loading">
+              <el-skeleton v-for="i in 6" :key="i" :rows="3" animated />
+            </template>
+            <template v-else>
+              <div
+                v-for="job in jobs"
+                :key="job.id"
+                class="job-card"
+                :class="{ active: selectedJob?.id === job.id }"
+                @click="selectJob(job)"
+              >
+                <div class="job-title-row">
+                  <span class="job-title">{{ job.title }}</span>
+                  <span class="salary">{{ job.salary }}</span>
+                </div>
+                <div class="job-meta-row">
+                  <span class="experience">{{ job.experience }}</span>
+                  <span class="education">{{ job.education }}</span>
+                </div>
+                <div class="company-row">
+                  <span class="company-name clickable" @click.stop="goToCompany(job)">{{
+                    getCompanyName(job)
+                  }}</span>
+                  <span class="industry">{{ getCompanyIndustry(job) }}</span>
+                  <span class="location">{{ getLocation(job) }}</span>
+                </div>
+              </div>
+            </template>
+          </template>
+
+          <div class="pagination-container" v-if="total > pageSize">
+            <el-pagination
+              v-model:current-page="currentPage"
+              :page-size="pageSize"
+              :total="total"
+              layout="prev, pager, next"
+              @current-change="handlePageChange"
+            />
+          </div>
+        </div>
+
+        <div class="job-detail">
+          <div v-if="selectedJob" class="detail-content">
+            <div class="detail-header">
+              <div class="detail-title-row">
+                <div class="title-left">
+                  <span class="detail-job-title">{{ selectedJob.title }}</span>
+                  <span class="detail-salary">{{ selectedJob.salary }}</span>
+                </div>
+                <div class="title-right">
+                  <el-button type="primary" class="communicate-btn" @click="communicate">
+                    立即沟通
+                  </el-button>
+                  <el-button class="favorite-btn" @click="toggleFavorite">
+                    <el-icon>
+                      <StarFilled v-if="isFavorited" />
+                      <Star v-else />
+                    </el-icon>
+                    {{ isFavorited ? '取消收藏' : '收藏' }}
+                  </el-button>
+                </div>
+              </div>
+              <div class="detail-meta-row">
+                <span>{{ getLocation(selectedJob) }}</span>
+                <span class="sep">|</span>
+                <span>{{ selectedJob.experience }}</span>
+                <span class="sep">|</span>
+                <span>{{ selectedJob.education }}</span>
+              </div>
+            </div>
+
+            <div class="detail-scroll">
+              <div class="detail-section" v-if="selectedJob.description">
+                <h2 class="section-title">职位描述</h2>
+                <div class="job-description">{{ selectedJob.description }}</div>
+              </div>
+
+              <el-divider />
+
+              <div class="hr-card" v-if="selectedJob.company">
+                <div class="hr-avatar">{{ getCompanyInitial(selectedJob) }}</div>
+                <div class="hr-info">
+                  <span class="hr-name">龚先生</span>
+                  <span class="hr-status">在线</span>
+                  <div class="hr-company">{{ getCompanyName(selectedJob) }} · 招聘专员</div>
+                </div>
+              </div>
+
+              <el-divider />
+
+              <div class="detail-section">
+                <h2 class="section-title">工作地点</h2>
+                <div class="address-text">
+                  <el-icon><Location /></el-icon>
+                  {{ getFullAddress(selectedJob) }}
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-footer">
+              <el-button class="view-more-btn" @click="goToJobDetail(selectedJob.id)">
+                查看更多信息
+              </el-button>
+            </div>
+          </div>
+          <div v-else class="empty-detail">
+            <el-empty description="请选择职位查看详情" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <AppFooter />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { Star, StarFilled, Location } from '@element-plus/icons-vue'
+import SeekerNavBar from '@/components/SeekerNavBar.vue'
+import AppFooter from '@/components/AppFooter.vue'
+import { jobApi } from '@/api/job'
+import { favoriteApi } from '@/api/favorite'
+import { useUserStore } from '@/store/user'
+import type { Job } from '@/types'
+
 defineOptions({
-  name: 'SeekerJobs',
+  name: 'JobsList',
 })
-import { ref } from 'vue'
 
+const router = useRouter()
+const userStore = useUserStore()
+
+const loading = ref(false)
 const searchKeyword = ref('')
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
-const jobList = ref([
-  {
-    id: 1,
-    title: '前端开发工程师',
-    salary: '15-25K',
-    city: '南昌',
-    experience: '3-5年',
-    company: '科技公司',
-  },
-  {
-    id: 2,
-    title: 'Java开发工程师',
-    salary: '18-30K',
-    city: '南昌',
-    experience: '3-5年',
-    company: '互联网公司',
-  },
-  {
-    id: 3,
-    title: '产品经理',
-    salary: '20-35K',
-    city: '南昌',
-    experience: '5-10年',
-    company: '科技公司',
-  },
-  {
-    id: 4,
-    title: 'UI设计师',
-    salary: '12-20K',
-    city: '南昌',
-    experience: '1-3年',
-    company: '设计公司',
-  },
-  {
-    id: 5,
-    title: '测试工程师',
-    salary: '10-18K',
-    city: '南昌',
-    experience: '1-3年',
-    company: '科技公司',
-  },
-  {
-    id: 6,
-    title: '运维工程师',
-    salary: '12-20K',
-    city: '南昌',
-    experience: '3-5年',
-    company: '互联网公司',
-  },
-])
+const filters = reactive({
+  salary: '',
+  experience: '',
+  education: '',
+})
+
+const selectedJob = ref<Job | null>(null)
+const isFavorited = ref(false)
+const jobs = ref<Job[]>([])
+
+const getCompanyName = (job: Job): string => {
+  if (typeof job.company === 'string') {
+    return job.company
+  }
+  if (job.company && typeof job.company === 'object') {
+    return job.company.name
+  }
+  return '未知公司'
+}
+
+const getCompanyIndustry = (job: Job): string => {
+  if (typeof job.company === 'string') {
+    return ''
+  }
+  if (job.company && typeof job.company === 'object') {
+    return job.company.industry
+  }
+  return ''
+}
+
+const getCompanyInitial = (job: Job): string => {
+  const name = getCompanyName(job)
+  return name ? name.charAt(0) : ''
+}
+
+const fetchJobs = async (): Promise<void> => {
+  try {
+    loading.value = true
+    const params = {
+      page: currentPage.value,
+      size: pageSize.value,
+      keyword: searchKeyword.value || undefined,
+      salary: filters.salary || undefined,
+      experience: filters.experience || undefined,
+      education: filters.education || undefined,
+    }
+
+    const result = await jobApi.getJobList(params)
+    jobs.value = result.content
+    total.value = result.totalElements
+
+    if (jobs.value.length > 0 && !selectedJob.value) {
+      await selectJob(jobs.value[0])
+    }
+  } catch (error) {
+    console.error('Failed to fetch jobs:', error)
+    ElMessage.error('获取职位列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleSearch = (): void => {
+  currentPage.value = 1
+  fetchJobs()
+}
+
+const handleFilterChange = (): void => {
+  currentPage.value = 1
+  fetchJobs()
+}
+
+const handlePageChange = (page: number): void => {
+  currentPage.value = page
+  fetchJobs()
+}
+
+const clearFilters = (): void => {
+  filters.salary = ''
+  filters.experience = ''
+  filters.education = ''
+  searchKeyword.value = ''
+  currentPage.value = 1
+  fetchJobs()
+}
+
+const selectJob = async (job: Job): Promise<void> => {
+  selectedJob.value = job
+
+  if (userStore.isLoggedIn && job.id) {
+    try {
+      const result = await favoriteApi.getFavoriteStatus(job.id)
+      isFavorited.value = result.favorited
+    } catch (error) {
+      console.error('Failed to get favorite status:', error)
+      isFavorited.value = false
+    }
+  } else {
+    isFavorited.value = false
+  }
+}
+
+const communicate = (): void => {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  router.push('/messages')
+}
+
+const toggleFavorite = async (): Promise<void> => {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  if (!selectedJob.value?.id) {
+    ElMessage.error('请选择职位')
+    return
+  }
+
+  try {
+    if (isFavorited.value) {
+      await favoriteApi.removeFavorite(selectedJob.value.id)
+      isFavorited.value = false
+      ElMessage.success('已取消收藏')
+    } else {
+      await favoriteApi.addFavorite(selectedJob.value.id)
+      isFavorited.value = true
+      ElMessage.success('收藏成功')
+    }
+  } catch (error) {
+    console.error('Failed to toggle favorite:', error)
+    ElMessage.error('操作失败，请重试')
+  }
+}
+
+const getLocation = (job: Job): string => {
+  if (job.city && job.district) {
+    return `${job.city}·${job.district}`
+  }
+  if (job.city) {
+    return job.city
+  }
+  if (typeof job.company === 'object' && job.company) {
+    const c = job.company
+    if (c.city && c.district) {
+      return `${c.city}·${c.district}`
+    }
+    if (c.city) {
+      return c.city
+    }
+  }
+  return ''
+}
+
+const getFullAddress = (job: Job): string => {
+  const parts: string[] = []
+  if (job.province) parts.push(job.province)
+  if (job.city && job.city !== job.province) parts.push(job.city)
+  if (job.district) parts.push(job.district)
+  if (job.address) parts.push(job.address)
+  if (parts.length > 0) {
+    return parts.join(' ')
+  }
+  if (typeof job.company === 'object' && job.company) {
+    const c = job.company
+    const companyParts: string[] = []
+    if (c.province) companyParts.push(c.province)
+    if (c.city && c.city !== c.province) companyParts.push(c.city)
+    if (c.district) companyParts.push(c.district)
+    if (c.address) companyParts.push(c.address)
+    if (companyParts.length > 0) {
+      return companyParts.join(' ')
+    }
+  }
+  return ''
+}
+
+const goToJobDetail = (jobId: number): void => {
+  router.push(`/jobs/${jobId}`)
+}
+
+const goToCompany = (job: Job): void => {
+  if (typeof job.company === 'object' && job.company && job.company.id) {
+    router.push(`/companies/${job.company.id}`)
+  }
+}
+
+onMounted(() => {
+  fetchJobs()
+})
 </script>
 
 <style scoped lang="scss">
-.seeker-jobs {
+@use '@/assets/styles/variables.scss' as *;
+
+.jobs-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #f7f7f7 25%);
 }
 
-.section {
-  margin-top: 20px;
+.page-container {
+  max-width: 1246px;
+  margin: 0 auto;
+  padding: 16px 28px;
+}
+
+.search-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: $canvas;
+  border-radius: $rounded-lg;
+  margin-bottom: 16px;
+
+  .search-input {
+    width: 300px;
+  }
+
+  .el-button--primary {
+    background-color: $primary;
+    border-color: $primary;
+
+    &:hover {
+      background-color: $primary-soft;
+      border-color: $primary-soft;
+    }
+
+    &:active {
+      background-color: $primary-deep;
+      border-color: $primary-deep;
+    }
+  }
+
+  .filter-divider {
+    width: 1px;
+    height: 24px;
+    background-color: $hairline;
+    margin: 0 8px;
+  }
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 14px;
+  color: $body;
+}
+
+.filter-select {
+  width: 100px;
+}
+
+.main-content {
+  display: flex;
+  gap: 16px;
+  min-height: 600px;
+}
+
+.jobs-list {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .job-card {
-  margin-bottom: 20px;
+  background-color: $canvas;
+  border: 2px solid $hairline;
+  border-radius: $rounded-lg;
+  padding: 14px 16px;
   cursor: pointer;
+  transition: all $transition-fast;
 
-  .job-title {
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  &.active {
+    border-color: $primary;
+
+    .job-title {
+      color: $primary;
+    }
+  }
+}
+
+.job-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.job-title {
+  font-size: 16px;
+  color: $ink;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.salary {
+  font-size: 16px;
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+.job-meta-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  span {
+    font-size: 12px;
+    color: $body;
+    padding: 2px 8px;
+    background-color: #f5f5f5;
+    border-radius: $rounded-sm;
+  }
+}
+
+.company-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: $mute;
+  gap: 8px;
+
+  .company-name,
+  .industry {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
+  }
+
+  .company-name.clickable {
+    color: $mute;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover {
+      color: $primary;
+    }
+  }
+
+  .location {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+}
+
+.pagination-container {
+  padding: 16px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.job-detail {
+  flex: 1;
+  border-radius: $rounded-lg;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 80px;
+  height: calc(100vh - 150px);
+  max-height: 800px;
+
+  .empty-detail {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.detail-header {
+  flex-shrink: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid $hairline;
+}
+
+.detail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.title-left {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.title-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.detail-job-title {
+  font-size: 20px;
+  color: $ink;
+  font-weight: 500;
+}
+
+.detail-salary {
+  font-size: 20px;
+  color: #ff6b6b;
+  font-weight: 500;
+}
+
+.detail-meta-row {
+  font-size: 14px;
+  color: $body;
+
+  .sep {
+    margin: 0 8px;
+    color: $hairline;
+  }
+}
+
+.detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 16px;
+}
+
+.detail-section {
+  margin-bottom: 20px;
+
+  .section-title {
     font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 8px;
+    color: $ink;
+    margin: 0 0 8px 0;
   }
 
-  .job-salary {
-    color: #1a7f64;
+  .address-text {
     font-size: 14px;
-    margin-bottom: 8px;
+    color: $body;
+    line-height: 1.8;
   }
 
-  .job-meta {
-    color: #666;
-    font-size: 12px;
-    margin-bottom: 8px;
+  .job-description {
+    font-size: 14px;
+    color: $body;
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+}
+
+.benefits-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hr-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: $rounded-lg;
+  margin-bottom: 20px;
+}
+
+.hr-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: $primary-soft;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: $on-primary;
+  flex-shrink: 0;
+}
+
+.hr-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.hr-name {
+  font-size: 14px;
+  color: $ink;
+  font-weight: 500;
+}
+
+.hr-status {
+  font-size: 12px;
+  color: $primary;
+  padding: 2px 8px;
+  background-color: rgba($primary, 0.1);
+  border-radius: 12px;
+}
+
+.hr-company {
+  font-size: 13px;
+  color: $body;
+  width: 100%;
+}
+
+.detail-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 1px solid $hairline;
+  margin-top: auto;
+
+  .view-more-btn {
+    padding: 10px 28px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid $primary;
+    color: $primary;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba($primary, 0.05);
+    }
+  }
+}
+
+.favorite-btn {
+  background-color: white;
+  border: 1px solid $primary;
+  color: $primary;
+  padding: 10px 24px;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgba($primary, 0.05);
+    border-color: $primary;
+    color: $primary;
   }
 
-  .company-name {
-    color: #999;
-    font-size: 12px;
+  &:active {
+    background-color: rgba($primary, 0.1);
+    border-color: $primary;
+    color: $primary;
+  }
+
+  .el-icon {
+    margin-right: 4px;
   }
 }
 </style>

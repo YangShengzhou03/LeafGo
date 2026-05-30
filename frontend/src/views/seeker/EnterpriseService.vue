@@ -1,6 +1,6 @@
 <template>
   <div class="static-page">
-    <NavBar />
+    <SeekerNavBar />
     <div class="page-container">
       <h1>企业服务</h1>
       <p>LeafGO 职达为企业提供全方位的招聘解决方案</p>
@@ -12,7 +12,7 @@
         </div>
         <div class="service-card">
           <h3>人才搜索</h3>
-          <p>海量简历库，智能匹配人才</p>
+          <p>海量简历库，智能匹配候选人</p>
         </div>
         <div class="service-card">
           <h3>招聘管理</h3>
@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import NavBar from '@/components/NavBar.vue'
+import SeekerNavBar from '@/components/SeekerNavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 </script>
 

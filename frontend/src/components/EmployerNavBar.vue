@@ -1,8 +1,9 @@
 <template>
   <header class="nav-bar">
     <div class="nav-container">
-      <div class="logo" @click="$router.push('/')">
+      <div class="logo" @click="$router.push('/employer')">
         <span class="logo-text">LeafGO 职达</span>
+        <span class="logo-badge">招聘者</span>
       </div>
 
       <nav class="nav-menu">
@@ -18,25 +19,16 @@
       </nav>
 
       <div class="user-actions">
-        <template v-if="userStore.isLoggedIn">
-          <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="badge-item">
-            <router-link to="/seeker/messages" class="icon-link">
-              <el-icon><ChatDotRound /></el-icon>
-              消息
-            </router-link>
-          </el-badge>
-          <router-link to="/seeker/resume" class="icon-link">
-            <el-icon><Document /></el-icon>
-            简历
-          </router-link>
+        <template v-if="userStore.isLoggedIn && userStore.isEmployer">
+          <router-link to="/employer/messages" class="icon-link">消息</router-link>
           <el-dropdown @command="handleCommand">
             <span class="user-dropdown">
-              <el-avatar :size="28">{{ userStore.userInfo?.username?.charAt(0) }}</el-avatar>
-              <span class="username">{{ userStore.userInfo?.username }}</span>
+              <el-avatar :size="28" class="user-avatar">{{ displayName.charAt(0) }}</el-avatar>
+              <span class="username">{{ displayName }}</span>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                <el-dropdown-item command="company">企业信息</el-dropdown-item>
                 <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -52,9 +44,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChatDotRound, Document } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
 
 const route = useRoute()
@@ -62,24 +53,29 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const menuItems = [
-  { path: '/', label: '首页' },
-  { path: '/jobs', label: '职位' },
-  { path: '/companies', label: '公司' },
-  { path: '/campus', label: '校园' },
-  { path: '/app', label: 'APP' },
+  { path: '/employer', label: '首页' },
+  { path: '/employer/jobs', label: '职位管理' },
+  { path: '/employer/candidates', label: '候选人' },
+  { path: '/employer/company', label: '企业信息' },
+  { path: '/employer/messages', label: '消息' },
 ]
 
-const unreadCount = ref(0)
+const displayName = computed((): string => {
+  const username = userStore.userInfo?.username
+  if (!username) return '用户'
+  if (username.length <= 4) return username
+  return username.substring(0, 4) + '...'
+})
 
 const isActive = (path: string): boolean => {
-  if (path === '/') return route.path === '/'
+  if (path === '/employer') return route.path === '/employer'
   return route.path.startsWith(path)
 }
 
 const handleCommand = (command: string): void => {
   switch (command) {
-    case 'profile':
-      router.push('/seeker')
+    case 'company':
+      router.push('/employer/company')
       break
     case 'logout':
       userStore.logout()
@@ -92,8 +88,6 @@ const handleCommand = (command: string): void => {
 <style scoped lang="scss">
 @use '@/assets/styles/variables.scss' as *;
 
-$nav-bg: #0a1f15;
-$nav-active: #00b85c;
 $nav-text: #00b85c;
 
 .nav-bar {
@@ -115,11 +109,23 @@ $nav-text: #00b85c;
 .logo {
   cursor: pointer;
   margin-right: $spacing-2xl;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
   .logo-text {
     font-size: $body-lg;
     color: #00b85c;
     letter-spacing: 3px;
+  }
+
+  .logo-badge {
+    font-size: 11px;
+    color: #fff;
+    background: rgba(0, 184, 92, 0.2);
+    border: 1px solid rgba(0, 184, 92, 0.4);
+    padding: 1px 6px;
+    border-radius: 4px;
   }
 }
 
@@ -189,12 +195,6 @@ $nav-text: #00b85c;
   }
 }
 
-.badge-item {
-  :deep(.el-badge__content) {
-    background-color: #f56c6c;
-  }
-}
-
 .user-dropdown {
   display: flex;
   align-items: center;
@@ -204,6 +204,17 @@ $nav-text: #00b85c;
   .username {
     font-size: $body-sm;
     color: $nav-text;
+    max-width: 80px;
+  }
+}
+
+.user-avatar {
+  background-color: #00b85c;
+  border: none;
+  box-shadow: none;
+
+  :deep(.el-avatar__inner) {
+    border: none;
   }
 }
 </style>

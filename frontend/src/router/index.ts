@@ -5,135 +5,96 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('@/views/Home.vue'),
+    component: () => import('@/views/seeker/Home.vue'),
   },
   {
     path: '/jobs',
     name: 'Jobs',
-    component: () => import('@/views/Jobs.vue'),
+    component: () => import('@/views/seeker/Jobs.vue'),
   },
   {
     path: '/jobs/:id',
     name: 'JobDetail',
-    component: () => import('@/views/JobDetail.vue'),
+    component: () => import('@/views/seeker/JobDetail.vue'),
   },
   {
     path: '/companies',
     name: 'Companies',
-    component: () => import('@/views/Companies.vue'),
+    component: () => import('@/views/seeker/Companies.vue'),
   },
   {
     path: '/companies/:id',
     name: 'CompanyDetail',
-    component: () => import('@/views/CompanyDetail.vue'),
+    component: () => import('@/views/seeker/CompanyDetail.vue'),
   },
   {
     path: '/campus',
     name: 'Campus',
-    component: () => import('@/views/Campus.vue'),
+    component: () => import('@/views/seeker/Campus.vue'),
   },
   {
     path: '/enterprise-service',
     name: 'EnterpriseService',
-    component: () => import('@/views/EnterpriseService.vue'),
+    component: () => import('@/views/seeker/EnterpriseService.vue'),
   },
   {
     path: '/investor-relations',
     name: 'InvestorRelations',
-    component: () => import('@/views/InvestorRelations.vue'),
+    component: () => import('@/views/seeker/InvestorRelations.vue'),
   },
   {
     path: '/privacy-policy',
     name: 'PrivacyPolicy',
-    component: () => import('@/views/PrivacyPolicy.vue'),
+    component: () => import('@/views/seeker/PrivacyPolicy.vue'),
   },
   {
     path: '/contact-us',
     name: 'ContactUs',
-    component: () => import('@/views/ContactUs.vue'),
+    component: () => import('@/views/seeker/ContactUs.vue'),
   },
   {
     path: '/anti-fraud',
     name: 'AntiFraud',
-    component: () => import('@/views/AntiFraud.vue'),
-  },
-  {
-    path: '/help',
-    name: 'Help',
-    component: () => import('@/views/Help.vue'),
+    component: () => import('@/views/seeker/AntiFraud.vue'),
   },
   {
     path: '/terms',
     name: 'Terms',
-    component: () => import('@/views/Terms.vue'),
+    component: () => import('@/views/seeker/Terms.vue'),
   },
   {
     path: '/app',
     name: 'AppDownload',
-    component: () => import('@/views/AppDownload.vue'),
+    component: () => import('@/views/seeker/AppDownload.vue'),
+  },
+  {
+    path: '/messages',
+    name: 'Messages',
+    component: () => import('@/views/seeker/Messages.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/resume',
+    name: 'Resume',
+    component: () => import('@/views/seeker/Resume.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/views/seeker/Profile.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
+    component: () => import('@/views/seeker/Login.vue'),
     meta: { guest: true },
-  },
-  {
-    path: '/seeker',
-    component: () => import('@/layouts/SeekerLayout.vue'),
-    meta: { requiresAuth: true, role: 'job_seeker' },
-    children: [
-      {
-        path: '',
-        name: 'SeekerHome',
-        component: () => import('@/views/seeker/Home.vue'),
-      },
-      {
-        path: 'jobs',
-        name: 'SeekerJobs',
-        component: () => import('@/views/seeker/Jobs.vue'),
-      },
-      {
-        path: 'jobs/:id',
-        name: 'SeekerJobDetail',
-        component: () => import('@/views/seeker/JobDetail.vue'),
-      },
-      {
-        path: 'companies',
-        name: 'SeekerCompanies',
-        component: () => import('@/views/seeker/Companies.vue'),
-      },
-      {
-        path: 'companies/:id',
-        name: 'SeekerCompanyDetail',
-        component: () => import('@/views/seeker/CompanyDetail.vue'),
-      },
-      {
-        path: 'messages',
-        name: 'SeekerMessages',
-        component: () => import('@/views/seeker/Messages.vue'),
-      },
-      {
-        path: 'resume',
-        name: 'SeekerResume',
-        component: () => import('@/views/seeker/Resume.vue'),
-      },
-      {
-        path: 'applications',
-        name: 'SeekerApplications',
-        component: () => import('@/views/seeker/Applications.vue'),
-      },
-      {
-        path: 'profile',
-        name: 'SeekerProfile',
-        component: () => import('@/views/seeker/Profile.vue'),
-      },
-    ],
   },
   {
     path: '/employer',
     component: () => import('@/layouts/EmployerLayout.vue'),
-    meta: { requiresAuth: true, role: 'employer' },
+    meta: { requiresAuth: true, role: 'EMPLOYER' },
     children: [
       {
         path: '',
@@ -175,7 +136,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin',
     component: () => import('@/layouts/AdminLayout.vue'),
-    meta: { requiresAuth: true, role: 'admin' },
+    meta: { requiresAuth: true, role: 'ADMIN' },
     children: [
       {
         path: '',
@@ -218,22 +179,18 @@ router.beforeEach((to, _from, next) => {
     next('/login')
   } else if (to.meta.guest && userStore.isLoggedIn) {
     const role = userStore.userInfo?.userType
-    if (role === 'JOB_SEEKER') {
-      next('/seeker')
-    } else if (role === 'EMPLOYER') {
+    if (role === 'EMPLOYER') {
       next('/employer')
     } else {
-      next()
+      next('/')
     }
   } else if (to.meta.role) {
     const role = userStore.userInfo?.userType
     if (role !== to.meta.role) {
-      if (role === 'JOB_SEEKER') {
-        next('/seeker')
-      } else if (role === 'EMPLOYER') {
+      if (role === 'EMPLOYER') {
         next('/employer')
       } else {
-        next('/login')
+        next('/')
       }
     } else {
       next()

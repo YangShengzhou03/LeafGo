@@ -22,6 +22,12 @@ public class Resume {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Column(length = 10)
+    private String gender;
+
+    @Column(length = 20)
+    private String birthday;
+
     @Column(length = 20)
     private String phone;
 
@@ -31,6 +37,18 @@ public class Resume {
     @Column(length = 255)
     private String avatar;
 
+    @Column(length = 100)
+    private String location;
+
+    @Column(name = "job_intention", length = 100)
+    private String jobIntention;
+
+    @Column(name = "job_status", length = 50)
+    private String jobStatus;
+
+    @Column(name = "expected_salary", length = 50)
+    private String expectedSalary;
+
     @Column(name = "self_introduction", columnDefinition = "TEXT")
     private String selfIntroduction;
 
@@ -39,6 +57,12 @@ public class Resume {
 
     @Column(name = "work_experience", columnDefinition = "TEXT")
     private String workExperience;
+
+    @Column(name = "project_experience", columnDefinition = "TEXT")
+    private String projectExperience;
+
+    @Column(columnDefinition = "TEXT")
+    private String certificates;
 
     @Column(columnDefinition = "TEXT")
     private String skills;

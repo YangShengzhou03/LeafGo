@@ -1,6 +1,6 @@
 <template>
   <div class="static-page">
-    <NavBar />
+    <SeekerNavBar />
     <div class="page-container">
       <h1>联系我们</h1>
 
@@ -8,15 +8,15 @@
         <div class="contact-card">
           <h3>企业服务热线</h3>
           <p class="phone">400 065 5799</p>
-          <p class="time">工作日 8:00 - 22:00</p>
-          <p class="time">休息日 8:00 - 22:00</p>
+          <p class="time">工作时间：8:00 - 22:00</p>
+          <p class="time">休息时间：8:00 - 22:00</p>
         </div>
 
         <div class="contact-card">
           <h3>老年人直连热线</h3>
           <p class="phone">400 661 6030</p>
-          <p class="time">工作日 8:00 - 22:00</p>
-          <p class="time">休息日 8:00 - 22:00</p>
+          <p class="time">工作时间：8:00 - 22:00</p>
+          <p class="time">休息时间：8:00 - 22:00</p>
         </div>
 
         <div class="contact-card">
@@ -35,7 +35,7 @@
       <div class="company-info">
         <h2>公司信息</h2>
         <p><strong>公司名称：</strong>LeafGO 职达招聘平台</p>
-        <p><strong>公司地址：</strong>北京市朝阳区太阳宫中路16号院1号楼18层1801内09</p>
+        <p><strong>公司地址：</strong>北京市朝阳区太阳宫中�?6号院1号楼18�?801�?9</p>
         <p><strong>统一社会信用代码：</strong>91110105MA01XXXXXX</p>
       </div>
     </div>
@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import NavBar from '@/components/NavBar.vue'
+import SeekerNavBar from '@/components/SeekerNavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 </script>
 

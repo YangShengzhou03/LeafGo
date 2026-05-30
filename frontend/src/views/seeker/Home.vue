@@ -1,79 +1,213 @@
 <template>
-  <div class="seeker-home">
-    <el-row :gutter="20">
-      <el-col :span="24">
-        <el-input
-          v-model="searchKeyword"
-          placeholder="搜索职位、公司"
-          size="large"
-          @keyup.enter="handleSearch"
+  <div class="home-page">
+    <SeekerNavBar />
+
+    <section class="search-section">
+      <div class="container">
+        <div class="search-group">
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索职位、公司或关键词"
+            class="search-input"
+            @keyup.enter="handleSearch"
+          />
+          <el-button type="primary" class="search-button" @click="handleSearch"> 搜索 </el-button>
+        </div>
+
+        <div class="hot-keywords" v-if="hotKeywords.length > 0">
+          <span class="keywords-label">热门搜索:</span>
+          <el-tag
+            v-for="keyword in hotKeywords"
+            :key="keyword"
+            class="keyword-tag"
+            @click="searchKeyword = keyword"
+          >
+            {{ keyword }}
+          </el-tag>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <el-carousel
+          v-if="banners.length > 0"
+          height="280px"
+          :interval="5000"
+          arrow="hover"
+          indicator-position="outside"
         >
-          <template #append>
-            <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-carousel-item v-for="banner in banners" :key="banner.id">
+            <div class="banner-card" @click="handleBannerClick(banner)">
+              <img
+                :src="banner.imageUrl"
+                :alt="banner.title"
+                class="banner-image"
+                @error="handleBannerImgError($event)"
+              />
+              <div class="banner-overlay">
+                <h3>{{ banner.title }}</h3>
+                <p>{{ banner.description }}</p>
+              </div>
+            </div>
+          </el-carousel-item>
+        </el-carousel>
+        <el-skeleton v-else :rows="3" animated />
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">精选职位</h2>
+
+        <div class="jobs-grid" v-loading="loading">
+          <template v-if="loading">
+            <el-skeleton v-for="i in 6" :key="i" :rows="4" animated />
           </template>
-        </el-input>
-      </el-col>
-    </el-row>
+          <template v-else>
+            <div
+              v-for="job in featuredJobs"
+              :key="job.id"
+              class="job-card"
+              @click="goToJob(job.id)"
+            >
+              <div class="job-top">
+                <div class="job-header">
+                  <h3 class="job-title">{{ job.title }}</h3>
+                  <div class="salary">{{ job.salary }}</div>
+                </div>
+                <div class="job-tags" v-if="job.tags && job.tags.length > 0">
+                  <span v-for="tag in job.tags" :key="tag" class="tag">{{ tag }}</span>
+                </div>
+                <div class="job-requirements">
+                  <span class="requirement-tag">{{ getLocation(job) }}</span>
+                  <span class="requirement-tag">{{ job.experience }}</span>
+                  <span class="requirement-tag">{{ job.education }}</span>
+                </div>
+              </div>
+              <div class="job-bottom">
+                <div class="company-left">
+                  <img
+                    v-if="getCompanyLogo(job)"
+                    :src="getCompanyLogo(job)"
+                    class="company-logo"
+                    @error="handleLogoError"
+                  />
+                  <div v-else class="company-logo-placeholder">
+                    {{ getCompanyName(job).charAt(0) }}
+                  </div>
+                  <span class="company-name">{{ getCompanyName(job) }}</span>
+                </div>
+                <span class="company-location">{{ getLocation(job) }}</span>
+              </div>
+            </div>
+          </template>
+        </div>
+        <el-empty v-if="!loading && featuredJobs.length === 0" description="暂无精选职位" />
+      </div>
+    </section>
 
-    <el-row :gutter="20" class="section">
-      <el-col :span="24">
-        <h2>精选职位</h2>
-      </el-col>
-
-      <el-col :span="8" v-for="job in jobList" :key="job.id">
-        <el-card shadow="hover" class="job-card" @click="$router.push(`/seeker/jobs/${job.id}`)">
-          <div class="job-title">{{ job.title }}</div>
-          <div class="job-salary">{{ job.salary }}</div>
-          <div class="job-meta">{{ getLocation(job) }} · {{ job.experience }}</div>
-          <div class="company-name">{{ getCompanyName(job) }}</div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <el-row :gutter="20" class="section">
-      <el-col :span="24">
-        <h2>热门企业</h2>
-      </el-col>
-
-      <el-col :span="6" v-for="company in companyList" :key="company.id">
-        <el-card
-          shadow="hover"
-          class="company-card"
-          @click="$router.push(`/seeker/companies/${company.id}`)"
-        >
-          <div class="company-name">{{ company.name }}</div>
-          <div class="company-meta">{{ company.industry }} · {{ company.scale }}</div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <AppFooter />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import SeekerNavBar from '@/components/SeekerNavBar.vue'
+import AppFooter from '@/components/AppFooter.vue'
+import { bannerApi, type Banner } from '@/api/banner'
 import { jobApi } from '@/api/job'
-import { companyApi } from '@/api/company'
-import type { Job, Company } from '@/types'
+import { configApi } from '@/api/config'
+import type { Job } from '@/types'
 
 defineOptions({
-  name: 'SeekerHome',
+  name: 'HomePage',
 })
 
 const router = useRouter()
-
 const searchKeyword = ref('')
-const jobList = ref<Job[]>([])
-const companyList = ref<Company[]>([])
+const loading = ref(false)
+
+const hotKeywords = ref<string[]>([])
+
+const banners = ref<Banner[]>([])
+const featuredJobs = ref<Job[]>([])
+
+const fetchHotKeywords = async (): Promise<void> => {
+  try {
+    const data = await configApi.getHotKeywords()
+    hotKeywords.value = data
+  } catch (error) {
+    console.error('Failed to fetch hot keywords:', error)
+  }
+}
+
+const fetchBanners = async (): Promise<void> => {
+  try {
+    const data = await bannerApi.getBanners()
+    banners.value = data
+  } catch (error) {
+    console.error('Failed to fetch banners:', error)
+  }
+}
+
+const fetchFeaturedJobs = async (): Promise<void> => {
+  try {
+    loading.value = true
+    const result = await jobApi.getJobList({ page: 1, size: 6 })
+    featuredJobs.value = result.content.map((job) => ({
+      ...job,
+      tags: typeof job.tags === 'string' ? (job.tags ? job.tags.split(',') : []) : job.tags || [],
+    }))
+  } catch (error) {
+    console.error('获取精选职位失败', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleSearch = (): void => {
+  if (searchKeyword.value.trim()) {
+    router.push(`/jobs?keyword=${encodeURIComponent(searchKeyword.value)}`)
+  }
+}
+
+const handleBannerImgError = (e: Event): void => {
+  const img = e.target as HTMLImageElement
+  img.style.display = 'none'
+  const parent = img.parentElement
+  if (parent) {
+    parent.classList.add('banner-img-error')
+  }
+}
+
+const handleBannerClick = (banner: Banner): void => {
+  if (banner.linkUrl) {
+    if (banner.linkUrl.startsWith('http')) {
+      window.open(banner.linkUrl, '_blank')
+    } else {
+      router.push(banner.linkUrl)
+    }
+  }
+}
+
+const goToJob = (jobId: number): void => {
+  router.push(`/jobs/${jobId}`)
+}
 
 const getCompanyName = (job: Job): string => {
-  if (typeof job.company === 'string') {
-    return job.company
-  }
-  if (job.company && typeof job.company === 'object') {
+  if (typeof job.company === 'object' && job.company) {
     return job.company.name
   }
-  return ''
+  return job.companyName || '未知公司'
+}
+
+const getCompanyLogo = (job: Job): string | undefined => {
+  if (typeof job.company === 'object' && job.company && job.company.logo) {
+    return job.company.logo
+  }
+  return undefined
 }
 
 const getLocation = (job: Job): string => {
@@ -95,46 +229,315 @@ const getLocation = (job: Job): string => {
   return ''
 }
 
-const fetchJobs = async (): Promise<void> => {
-  try {
-    const result = await jobApi.getJobList({ page: 1, size: 3 })
-    jobList.value = result.content
-  } catch {
-    jobList.value = []
-  }
-}
-
-const fetchCompanies = async (): Promise<void> => {
-  try {
-    const result = await companyApi.getCompanyList({ page: 1, size: 4 })
-    companyList.value = result.content
-  } catch {
-    companyList.value = []
-  }
-}
-
-const handleSearch = (): void => {
-  if (searchKeyword.value.trim()) {
-    router.push({
-      path: '/seeker/jobs',
-      query: { keyword: searchKeyword.value },
-    })
-  }
+const handleLogoError = (e: Event): void => {
+  const img = e.target as HTMLImageElement
+  img.style.display = 'none'
 }
 
 onMounted(() => {
-  fetchJobs()
-  fetchCompanies()
+  fetchHotKeywords()
+  fetchBanners()
+  fetchFeaturedJobs()
 })
 </script>
 
 <style scoped lang="scss">
-.seeker-home {
+@use '@/assets/styles/variables.scss' as *;
+
+.home-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #f7f7f7 25%);
+}
+
+.search-section {
+  padding: 28px 0 $spacing-xl;
+}
+
+.search-group {
+  display: flex;
+  max-width: 840px;
+  margin: 0 auto;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+
+  .search-input {
+    flex: 1;
+
+    :deep(.el-input__wrapper) {
+      background-color: $canvas;
+      border: none;
+      border-radius: 28px 0 0 28px;
+      box-shadow: none;
+      padding: 0 $spacing-2xl;
+      height: 52px;
+    }
+
+    :deep(.el-input__inner) {
+      font-size: $body-sm;
+    }
+  }
+
+  .search-button {
+    border-radius: 0 28px 28px 0 !important;
+    padding: 0 $spacing-4xl !important;
+    font-size: $body-sm !important;
+    height: 52px !important;
+    background-color: $primary !important;
+    border-color: $primary !important;
+
+    &:hover {
+      background-color: $primary-soft !important;
+      border-color: $primary-soft !important;
+    }
+  }
+}
+
+.hot-keywords {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  margin-top: $spacing-xl;
+  flex-wrap: wrap;
+
+  .keywords-label {
+    font-size: $body-sm;
+    color: $mute;
+    margin-right: $spacing-sm;
+    min-width: 70px;
+  }
+
+  .keyword-tag {
+    background-color: #ffffff;
+    border: none;
+    color: $body;
+    cursor: pointer;
+    font-size: $body-sm;
+    padding: 6px $spacing-xl;
+    border-radius: 20px;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: $primary;
+      color: #fff;
+    }
+  }
 }
 
 .section {
-  margin-top: 20px;
+  padding: $spacing-3xl 0;
+
+  &:first-of-type {
+    padding-top: $spacing-lg;
+  }
+
+  :deep(.el-carousel) {
+    border-radius: $rounded-xl;
+    overflow: hidden;
+  }
+
+  :deep(.el-carousel__indicators) {
+    margin-top: 12px;
+  }
+}
+
+.section-title {
+  font-size: $body-lg;
+  color: $ink;
+  margin: 0 0 $spacing-lg 0;
+  letter-spacing: 0.3px;
+  font-weight: 400;
+}
+
+.banner-card {
+  position: relative;
+  height: 100%;
+  border-radius: $rounded-xl;
+  overflow: hidden;
+  cursor: pointer;
+
+  &.banner-img-error {
+    background: #000;
+  }
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 24px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+
+  h3 {
+    font-size: 20px;
+    color: white;
+    margin: 0 0 4px 0;
+    font-weight: 500;
+  }
+
+  p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+  }
+}
+
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  min-height: 200px;
+}
+
+.job-card {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  border: none;
+  min-width: 0;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.job-top {
+  padding: 16px 14px 12px;
+}
+
+.job-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.job-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  color: #222;
+  margin: 0;
+  line-height: 1.4;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.salary {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #ff6b6b;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.job-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tag {
+  padding: 2px 6px;
+  background-color: #f0f7f4;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #52c41a;
+  border: none;
+}
+
+.job-requirements {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.requirement-tag {
+  padding: 2px 6px;
+  background-color: #f5f5f5;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #666;
+}
+
+.job-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: #f8fbfb;
+}
+
+.company-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.company-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.company-logo-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background-color: #e8f5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.company-name {
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+}
+
+.company-location {
+  font-size: 12px;
+  color: #999;
+}
+
+.load-more {
+  text-align: center;
+  margin-top: $spacing-2xl;
+
+  .el-button {
+    padding: $spacing-md $spacing-5xl;
+    font-size: $body-sm;
+    border-radius: $rounded-pill;
+    border-color: $hairline-soft;
+    color: $body;
+    transition: all $transition-fast;
+
+    &:hover {
+      border-color: $primary;
+      color: $primary;
+      background-color: rgba($primary, 0.04);
+    }
+  }
 }
 </style>

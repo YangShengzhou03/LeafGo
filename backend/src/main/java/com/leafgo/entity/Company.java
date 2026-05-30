@@ -52,6 +52,15 @@ public class Company {
     @Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean verified = false;
 
+    @Column(columnDefinition = "TEXT")
+    private String benefits;
+
+    @Column(name = "work_time", length = 100)
+    private String workTime;
+
+    @Column(name = "boss_info", columnDefinition = "TEXT")
+    private String bossInfo;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -14,7 +14,7 @@ export const authApi = {
     phone: string
     code: string
     userType: string
-  }): Promise<{ userId: number; token: string }> {
+  }): Promise<{ userId: number; token: string; userType: string }> {
     return request.post('/auth/register', data)
   },
 

@@ -140,6 +140,14 @@ pre {
   }
 }
 
+.el-button {
+  padding: 10px 24px !important;
+  height: 36px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  border-radius: 4px !important;
+}
+
 .el-checkbox__input.is-checked .el-checkbox__inner {
   background-color: $primary !important;
   border-color: $primary !important;

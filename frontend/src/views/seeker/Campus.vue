@@ -1,6 +1,6 @@
 <template>
   <div class="campus-page">
-    <NavBar />
+    <SeekerNavBar />
 
     <div class="page-container">
       <div class="campus-tabs">
@@ -119,7 +119,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { CircleCheck, Location } from '@element-plus/icons-vue'
-import NavBar from '@/components/NavBar.vue'
+import SeekerNavBar from '@/components/SeekerNavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import { companyApi } from '@/api/company'
 import type { Company } from '@/types'
@@ -191,11 +191,9 @@ const handleTabChange = (tab: string): void => {
   activeTab.value = tab
 }
 
-const handleSearch = (): void => {
-}
+const handleSearch = (): void => {}
 
-const handleFilterChange = (): void => {
-}
+const handleFilterChange = (): void => {}
 
 const handleMajorClick = (major: string): void => {
   if (selectedMajor.value === major) {
