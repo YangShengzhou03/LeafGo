@@ -112,7 +112,11 @@ public class JobController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Job>> getJobDetail(@PathVariable Long id) {
         return jobRepository.findByIdWithCompany(id)
-                .map(job -> ResponseEntity.ok(ApiResponse.success(job)))
+                .map(job -> {
+                    job.setViewCount(job.getViewCount() + 1);
+                    jobRepository.save(job);
+                    return ResponseEntity.ok(ApiResponse.success(job));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

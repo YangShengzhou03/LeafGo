@@ -68,7 +68,6 @@ const showHRLicense = (): void => {
 .footer {
   background-color: #1a1a2e;
   padding: $spacing-5xl 0 0;
-  margin-top: $spacing-5xl;
 }
 
 .footer-links {

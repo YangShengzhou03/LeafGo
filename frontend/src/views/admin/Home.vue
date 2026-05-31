@@ -14,7 +14,7 @@
       </el-col>
       <el-col :span="6">
         <div class="stat-card">
-          <div class="stat-icon" style="background: #67c23a">
+          <div class="stat-icon" style="background: #00b85c">
             <el-icon size="24"><OfficeBuilding /></el-icon>
           </div>
           <div class="stat-info">

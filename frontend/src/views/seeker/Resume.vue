@@ -21,52 +21,158 @@
           <div class="resume-content">
             <div class="content-header">
               <div class="header-top">
-                <div class="avatar-section">
+                <div class="avatar-section" v-if="editingSection !== 'basicInfo'">
                   <div class="avatar">
                     {{ (resume.name || userStore.userInfo?.username || '未').charAt(0) }}
                   </div>
                 </div>
                 <div class="basic-info">
-                  <h1>{{ resume.name || userStore.userInfo?.username || '未填写姓名' }}</h1>
-                  <div class="info-row">
-                    <span class="info-item">
-                      <span class="label">求职状态</span>
-                      <span class="value">{{ resume.jobStatus || '未填写' }}</span>
-                    </span>
-                  </div>
+                  <template v-if="editingSection === 'basicInfo'">
+                    <div class="inline-edit-form basic-info-form">
+                      <div class="form-row">
+                        <label>姓名</label>
+                        <el-input v-model="basicInfoForm.name" placeholder="请输入姓名" />
+                      </div>
+                      <div class="form-row">
+                        <label>性别</label>
+                        <el-radio-group v-model="basicInfoForm.gender">
+                          <el-radio label="男">男</el-radio>
+                          <el-radio label="女">女</el-radio>
+                        </el-radio-group>
+                      </div>
+                      <div class="form-row">
+                        <label>生日</label>
+                        <el-date-picker
+                          v-model="basicInfoForm.birthday"
+                          type="date"
+                          placeholder="选择生日"
+                          value-format="YYYY-MM-DD"
+                        />
+                      </div>
+                      <div class="form-row">
+                        <label>政治面貌</label>
+                        <el-select v-model="basicInfoForm.politicalStatus" placeholder="请选择">
+                          <el-option label="群众" value="群众" />
+                          <el-option label="共青团员" value="共青团员" />
+                          <el-option label="中共党员" value="中共党员" />
+                          <el-option label="民主党派" value="民主党派" />
+                        </el-select>
+                      </div>
+                      <div class="form-row">
+                        <label>地区</label>
+                        <el-input v-model="basicInfoForm.location" placeholder="请输入地区" />
+                      </div>
+                      <div class="form-row">
+                        <label>身份</label>
+                        <el-radio-group
+                          v-model="basicInfoForm.identity"
+                          @change="handleIdentityChange"
+                        >
+                          <el-radio label="学生">学生</el-radio>
+                          <el-radio label="社会人">社会人</el-radio>
+                        </el-radio-group>
+                      </div>
+                      <div class="form-row">
+                        <label>求职状态</label>
+                        <el-select v-model="basicInfoForm.jobStatus" placeholder="请选择求职状态">
+                          <template v-if="basicInfoForm.identity === '学生'">
+                            <el-option label="在校-看看机会" value="在校-看看机会" />
+                            <el-option label="在校-暂不考虑" value="在校-暂不考虑" />
+                            <el-option label="离校-随时到岗" value="离校-随时到岗" />
+                          </template>
+                          <template v-else>
+                            <el-option label="在职-看看机会" value="在职-看看机会" />
+                            <el-option label="在职-暂不考虑" value="在职-暂不考虑" />
+                            <el-option label="离职-随时到岗" value="离职-随时到岗" />
+                          </template>
+                        </el-select>
+                      </div>
+                      <div class="form-row">
+                        <label>手机号</label>
+                        <el-input v-model="basicInfoForm.phone" placeholder="请输入手机号" />
+                      </div>
+                      <div class="form-row">
+                        <label>邮箱</label>
+                        <el-input v-model="basicInfoForm.email" placeholder="请输入邮箱" />
+                      </div>
+                      <div class="edit-actions">
+                        <el-button size="small" @click="cancelEdit">取消</el-button>
+                        <el-button type="primary" size="small" @click="saveBasicInfoInline"
+                          >保存</el-button
+                        >
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <h1>{{ resume.name || userStore.userInfo?.username || '未填写姓名' }}</h1>
+                    <div class="info-details">
+                      <div class="info-row">
+                        <span class="label">求职状态</span>
+                        <span class="value">{{ resume.jobStatus || '未填写' }}</span>
+                      </div>
+                      <div class="info-row" v-if="resume.gender">
+                        <span class="label">性别</span>
+                        <span class="value">{{ resume.gender }}</span>
+                      </div>
+                      <div class="info-row" v-if="resume.birthday">
+                        <span class="label">年龄</span>
+                        <span class="value">{{ calculateAge(resume.birthday) }}岁</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="label">学历</span>
+                        <span class="value">{{ getEducationLevel() }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="label">院校</span>
+                        <span class="value">{{ getSchoolName() }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="label">专业</span>
+                        <span class="value">{{ getMajorName() }}</span>
+                      </div>
+                      <div class="info-row" v-if="resume.politicalStatus">
+                        <span class="label">政治面貌</span>
+                        <span class="value">{{ resume.politicalStatus }}</span>
+                      </div>
+                      <div class="info-row" v-if="resume.location">
+                        <span class="label">地区</span>
+                        <span class="value">{{ resume.location }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="label">手机号</span>
+                        <span class="value">{{
+                          resume.phone || userStore.userInfo?.phone || '未填写'
+                        }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="label">邮箱</span>
+                        <span class="value">{{
+                          resume.email || userStore.userInfo?.email || '未填写'
+                        }}</span>
+                      </div>
+                    </div>
+                  </template>
                 </div>
-                <el-button type="primary" size="small" class="edit-btn" @click="editBasicInfo">
+                <span
+                  v-if="editingSection !== 'basicInfo'"
+                  class="edit-link"
+                  @click="startEdit('basicInfo')"
+                >
                   编辑基本信息
-                </el-button>
-              </div>
-              <div class="contact-row">
-                <div class="contact-item">
-                  <span class="contact-label">手机号</span>
-                  <span class="contact-value">{{
-                    resume.phone || userStore.userInfo?.phone || '未填写'
-                  }}</span>
-                </div>
-                <div class="contact-item">
-                  <span class="contact-label">邮箱</span>
-                  <span class="contact-value">{{
-                    resume.email || userStore.userInfo?.email || '未填写'
-                  }}</span>
-                </div>
+                </span>
               </div>
             </div>
 
             <div id="advantage" class="resume-section">
               <div class="section-header">
                 <h2>个人优势</h2>
-                <el-button
+                <span
                   v-if="editingSection !== 'advantage'"
-                  type="primary"
-                  size="small"
-                  plain
+                  class="edit-link"
                   @click="startEdit('advantage')"
                 >
                   编辑
-                </el-button>
+                </span>
                 <div v-else class="edit-actions">
                   <el-button size="small" @click="cancelEdit">取消</el-button>
                   <el-button type="primary" size="small" @click="saveAdvantage">保存</el-button>
@@ -94,199 +200,364 @@
             <div id="intention" class="resume-section">
               <div class="section-header">
                 <h2>期望职位</h2>
-                <el-button type="primary" size="small" plain @click="startEdit('intention')">
+                <span
+                  v-if="editingSection !== 'intention'"
+                  class="edit-link"
+                  @click="startEdit('intention')"
+                >
                   编辑
-                </el-button>
+                </span>
+                <div v-else class="edit-actions">
+                  <el-button size="small" @click="cancelEdit">取消</el-button>
+                  <el-button type="primary" size="small" @click="saveIntentionInline"
+                    >保存</el-button
+                  >
+                </div>
               </div>
               <div class="section-content">
-                <div v-if="resume.jobIntention" class="intention-grid">
-                  <div class="intention-item">
-                    <span class="item-label">期望职位</span>
-                    <span class="item-value">{{ resume.jobIntention }}</span>
+                <template v-if="editingSection === 'intention'">
+                  <div class="inline-edit-form">
+                    <div class="form-row">
+                      <label>期望职位</label>
+                      <el-input v-model="intentionForm.jobIntention" placeholder="请输入期望职位" />
+                    </div>
+                    <div class="form-row">
+                      <label>期望薪资</label>
+                      <el-input
+                        v-model="intentionForm.expectedSalary"
+                        placeholder="例如：15k-25k"
+                      />
+                    </div>
+                    <div class="form-row">
+                      <label>期望城市</label>
+                      <el-input
+                        v-model="intentionForm.expectedLocation"
+                        placeholder="请输入期望城市"
+                      />
+                    </div>
                   </div>
-                  <div class="intention-item">
-                    <span class="item-label">期望薪资</span>
-                    <span class="item-value salary">{{ resume.expectedSalary || '面议' }}</span>
+                </template>
+                <template v-else>
+                  <div v-if="resume.jobIntention" class="intention-grid">
+                    <div class="intention-item">
+                      <span class="item-label">期望职位</span>
+                      <span class="item-value">{{ resume.jobIntention }}</span>
+                    </div>
+                    <div class="intention-item">
+                      <span class="item-label">期望薪资</span>
+                      <span class="item-value salary">{{ resume.expectedSalary || '面议' }}</span>
+                    </div>
+                    <div class="intention-item">
+                      <span class="item-label">期望城市</span>
+                      <span class="item-value">{{ resume.expectedLocation || '未填写' }}</span>
+                    </div>
                   </div>
-                  <div class="intention-item">
-                    <span class="item-label">期望城市</span>
-                    <span class="item-value">{{ resume.expectedLocation || '未填写' }}</span>
+                  <div v-else class="empty-placeholder" @click="startEdit('intention')">
+                    <span class="empty-icon">+</span>
+                    <span class="empty-text">添加期望职位，让HR更快找到你</span>
                   </div>
-                </div>
-                <div v-else class="empty-placeholder">
-                  <span class="empty-icon">+</span>
-                  <span class="empty-text">添加期望职位，让HR更快找到你</span>
-                </div>
+                </template>
               </div>
             </div>
 
             <div id="work" class="resume-section">
               <div class="section-header">
                 <h2>工作/实习经历</h2>
-                <el-button type="primary" size="small" plain @click="startEdit('work')">
+                <span v-if="editingSection !== 'work'" class="edit-link" @click="startEdit('work')">
                   添加经历
-                </el-button>
+                </span>
+                <div v-else class="edit-actions">
+                  <el-button size="small" @click="cancelEdit">取消</el-button>
+                  <el-button type="primary" size="small" @click="saveWorkInline">保存</el-button>
+                </div>
               </div>
               <div class="section-content">
-                <div
-                  v-if="resume.workExperience && resume.workExperience.length > 0"
-                  class="experience-list"
-                >
-                  <div
-                    v-for="(work, index) in resume.workExperience"
-                    :key="index"
-                    class="experience-item"
-                  >
-                    <div class="experience-header">
-                      <h3>{{ work.company }}</h3>
-                      <span class="experience-time"
-                        >{{ work.startDate }} - {{ work.endDate || '至今' }}</span
-                      >
+                <template v-if="editingSection === 'work'">
+                  <div class="inline-edit-form">
+                    <div class="form-row">
+                      <label>公司名称</label>
+                      <el-input v-model="workForm.company" placeholder="请输入公司名称" />
                     </div>
-                    <p class="experience-position">{{ work.position }}</p>
-                    <p class="experience-desc">{{ work.description }}</p>
+                    <div class="form-row">
+                      <label>职位</label>
+                      <el-input v-model="workForm.position" placeholder="请输入职位" />
+                    </div>
+                    <div class="form-row">
+                      <label>开始时间</label>
+                      <el-input v-model="workForm.startDate" placeholder="例如：2020-01" />
+                    </div>
+                    <div class="form-row">
+                      <label>结束时间</label>
+                      <el-input
+                        v-model="workForm.endDate"
+                        placeholder="例如：2023-01，在职可不填"
+                      />
+                    </div>
+                    <div class="form-row">
+                      <label>工作描述</label>
+                      <el-input
+                        v-model="workForm.description"
+                        type="textarea"
+                        :rows="4"
+                        placeholder="请描述工作内容和成果..."
+                      />
+                    </div>
                   </div>
-                </div>
-                <div v-else class="empty-placeholder">
-                  <span class="empty-icon">+</span>
-                  <span class="empty-text">添加工作经历，展示你的职业发展</span>
-                </div>
+                </template>
+                <template v-else>
+                  <div
+                    v-if="resume.workExperience && resume.workExperience.length > 0"
+                    class="experience-list"
+                  >
+                    <div
+                      v-for="(work, index) in resume.workExperience"
+                      :key="index"
+                      class="experience-item"
+                    >
+                      <div class="experience-header">
+                        <h3>{{ work.company }}</h3>
+                        <span class="experience-time"
+                          >{{ work.startDate }} - {{ work.endDate || '至今' }}</span
+                        >
+                      </div>
+                      <p class="experience-position">{{ work.position }}</p>
+                      <p class="experience-desc">{{ work.description }}</p>
+                    </div>
+                  </div>
+                  <div v-else class="empty-placeholder" @click="startEdit('work')">
+                    <span class="empty-icon">+</span>
+                    <span class="empty-text">添加工作经历，展示你的职业发展</span>
+                  </div>
+                </template>
               </div>
             </div>
 
             <div id="project" class="resume-section">
               <div class="section-header">
                 <h2>项目经历</h2>
-                <el-button type="primary" size="small" plain @click="startEdit('project')">
+                <span
+                  v-if="editingSection !== 'project'"
+                  class="edit-link"
+                  @click="startEdit('project')"
+                >
                   添加项目
-                </el-button>
+                </span>
+                <div v-else class="edit-actions">
+                  <el-button size="small" @click="cancelEdit">取消</el-button>
+                  <el-button type="primary" size="small" @click="saveProjectInline">保存</el-button>
+                </div>
               </div>
               <div class="section-content">
-                <div
-                  v-if="resume.projectExperience && resume.projectExperience.length > 0"
-                  class="experience-list"
-                >
-                  <div
-                    v-for="(project, index) in resume.projectExperience"
-                    :key="index"
-                    class="experience-item"
-                  >
-                    <div class="experience-header">
-                      <h3>{{ project.name }}</h3>
-                      <span class="experience-time">{{ project.time }}</span>
+                <template v-if="editingSection === 'project'">
+                  <div class="inline-edit-form">
+                    <div class="form-row">
+                      <label>项目名称</label>
+                      <el-input v-model="projectForm.name" placeholder="请输入项目名称" />
                     </div>
-                    <p class="experience-position">{{ project.role }}</p>
-                    <p class="experience-desc">{{ project.description }}</p>
+                    <div class="form-row">
+                      <label>项目角色</label>
+                      <el-input v-model="projectForm.role" placeholder="请输入项目角色" />
+                    </div>
+                    <div class="form-row">
+                      <label>项目时间</label>
+                      <el-input v-model="projectForm.time" placeholder="例如：2021-01 至 2022-01" />
+                    </div>
+                    <div class="form-row">
+                      <label>项目描述</label>
+                      <el-input
+                        v-model="projectForm.description"
+                        type="textarea"
+                        :rows="4"
+                        placeholder="请描述项目内容和技术栈..."
+                      />
+                    </div>
                   </div>
-                </div>
-                <div v-else class="empty-placeholder">
-                  <span class="empty-icon">+</span>
-                  <span class="empty-text">添加项目经历，展示你的实战能力</span>
-                </div>
+                </template>
+                <template v-else>
+                  <div
+                    v-if="resume.projectExperience && resume.projectExperience.length > 0"
+                    class="experience-list"
+                  >
+                    <div
+                      v-for="(project, index) in resume.projectExperience"
+                      :key="index"
+                      class="experience-item"
+                    >
+                      <div class="experience-header">
+                        <h3>{{ project.name }}</h3>
+                        <span class="experience-time">{{ project.time }}</span>
+                      </div>
+                      <p class="experience-position">{{ project.role }}</p>
+                      <p class="experience-desc">{{ project.description }}</p>
+                    </div>
+                  </div>
+                  <div v-else class="empty-placeholder" @click="startEdit('project')">
+                    <span class="empty-icon">+</span>
+                    <span class="empty-text">添加项目经历，展示你的实战能力</span>
+                  </div>
+                </template>
               </div>
             </div>
 
             <div id="education" class="resume-section">
               <div class="section-header">
                 <h2>教育经历</h2>
-                <el-button type="primary" size="small" plain @click="startEdit('education')">
+                <span
+                  v-if="editingSection !== 'education'"
+                  class="edit-link"
+                  @click="startEdit('education')"
+                >
                   添加经历
-                </el-button>
+                </span>
+                <div v-else class="edit-actions">
+                  <el-button size="small" @click="cancelEdit">取消</el-button>
+                  <el-button type="primary" size="small" @click="saveEducationInline"
+                    >保存</el-button
+                  >
+                </div>
               </div>
               <div class="section-content">
-                <div v-if="resume.education && resume.education.length > 0" class="experience-list">
-                  <div
-                    v-for="(edu, index) in resume.education"
-                    :key="index"
-                    class="experience-item"
-                  >
-                    <div class="experience-header">
-                      <h3>{{ edu.school }}</h3>
-                      <span class="experience-time">{{ edu.startDate }} - {{ edu.endDate }}</span>
+                <template v-if="editingSection === 'education'">
+                  <div class="inline-edit-form">
+                    <div class="form-row">
+                      <label>学校名称</label>
+                      <el-input v-model="educationForm.school" placeholder="请输入学校名称" />
                     </div>
-                    <p class="experience-position">{{ edu.major }} · {{ edu.degree }}</p>
+                    <div class="form-row">
+                      <label>专业</label>
+                      <el-input v-model="educationForm.major" placeholder="请输入专业" />
+                    </div>
+                    <div class="form-row">
+                      <label>学历</label>
+                      <el-select v-model="educationForm.degree" placeholder="请选择学历">
+                        <el-option label="大专" value="大专" />
+                        <el-option label="本科" value="本科" />
+                        <el-option label="硕士" value="硕士" />
+                        <el-option label="博士" value="博士" />
+                      </el-select>
+                    </div>
+                    <div class="form-row">
+                      <label>开始时间</label>
+                      <el-input v-model="educationForm.startDate" placeholder="例如：2016-09" />
+                    </div>
+                    <div class="form-row">
+                      <label>结束时间</label>
+                      <el-input v-model="educationForm.endDate" placeholder="例如：2020-06" />
+                    </div>
                   </div>
-                </div>
-                <div v-else class="empty-placeholder">
-                  <span class="empty-icon">+</span>
-                  <span class="empty-text">添加教育经历，展示你的学历背景</span>
-                </div>
+                </template>
+                <template v-else>
+                  <div
+                    v-if="resume.education && resume.education.length > 0"
+                    class="experience-list"
+                  >
+                    <div
+                      v-for="(edu, index) in resume.education"
+                      :key="index"
+                      class="experience-item"
+                    >
+                      <div class="experience-header">
+                        <h3>{{ edu.school }}</h3>
+                        <span class="experience-time">{{ edu.startDate }} - {{ edu.endDate }}</span>
+                      </div>
+                      <p class="experience-position">{{ edu.major }} · {{ edu.degree }}</p>
+                    </div>
+                  </div>
+                  <div v-else class="empty-placeholder" @click="startEdit('education')">
+                    <span class="empty-icon">+</span>
+                    <span class="empty-text">添加教育经历，展示你的学历背景</span>
+                  </div>
+                </template>
               </div>
             </div>
 
             <div id="certificate" class="resume-section">
               <div class="section-header">
                 <h2>资格证书</h2>
-                <el-button type="primary" size="small" plain @click="startEdit('certificate')">
+                <span
+                  v-if="editingSection !== 'certificate'"
+                  class="edit-link"
+                  @click="startEdit('certificate')"
+                >
                   添加证书
-                </el-button>
-              </div>
-              <div class="section-content">
-                <div v-if="resume.certificates && resume.certificates.length > 0" class="tag-list">
-                  <el-tag
-                    v-for="cert in resume.certificates"
-                    :key="cert"
-                    type="success"
-                    size="large"
-                    >{{ cert }}</el-tag
+                </span>
+                <div v-else class="edit-actions">
+                  <el-button size="small" @click="cancelEdit">取消</el-button>
+                  <el-button type="primary" size="small" @click="saveCertificateInline"
+                    >保存</el-button
                   >
                 </div>
-                <div v-else class="empty-placeholder">
-                  <span class="empty-icon">+</span>
-                  <span class="empty-text">添加资格证书，证明你的专业能力</span>
-                </div>
+              </div>
+              <div class="section-content">
+                <template v-if="editingSection === 'certificate'">
+                  <div class="inline-edit-form">
+                    <div class="form-row">
+                      <label>证书名称</label>
+                      <el-input v-model="certificateForm.name" placeholder="请输入证书名称" />
+                    </div>
+                  </div>
+                </template>
+                <template v-else>
+                  <div
+                    v-if="resume.certificates && resume.certificates.length > 0"
+                    class="tag-list"
+                  >
+                    <el-tag
+                      v-for="cert in resume.certificates"
+                      :key="cert"
+                      type="success"
+                      size="large"
+                      >{{ cert }}</el-tag
+                    >
+                  </div>
+                  <div v-else class="empty-placeholder" @click="startEdit('certificate')">
+                    <span class="empty-icon">+</span>
+                    <span class="empty-text">添加资格证书，证明你的专业能力</span>
+                  </div>
+                </template>
               </div>
             </div>
 
             <div id="skills" class="resume-section">
               <div class="section-header">
                 <h2>专业技能</h2>
-                <el-button type="primary" size="small" plain @click="startEdit('skills')">
+                <span
+                  v-if="editingSection !== 'skills'"
+                  class="edit-link"
+                  @click="startEdit('skills')"
+                >
                   添加技能
-                </el-button>
+                </span>
+                <div v-else class="edit-actions">
+                  <el-button size="small" @click="cancelEdit">取消</el-button>
+                  <el-button type="primary" size="small" @click="saveSkillInline">保存</el-button>
+                </div>
               </div>
               <div class="section-content">
-                <div v-if="resume.skills && resume.skills.length > 0" class="skills-grid">
-                  <div v-for="(skill, index) in resume.skills" :key="index" class="skill-tag">
-                    {{ skill }}
+                <template v-if="editingSection === 'skills'">
+                  <div class="inline-edit-form">
+                    <div class="form-row">
+                      <label>技能名称</label>
+                      <el-input v-model="skillForm.name" placeholder="请输入技能名称" />
+                    </div>
                   </div>
-                </div>
-                <div v-else class="empty-placeholder">
-                  <span class="empty-icon">+</span>
-                  <span class="empty-text">添加专业技能，展示你的技术栈</span>
-                </div>
+                </template>
+                <template v-else>
+                  <div v-if="resume.skills && resume.skills.length > 0" class="skills-grid">
+                    <div v-for="(skill, index) in resume.skills" :key="index" class="skill-tag">
+                      {{ skill }}
+                    </div>
+                  </div>
+                  <div v-else class="empty-placeholder" @click="startEdit('skills')">
+                    <span class="empty-icon">+</span>
+                    <span class="empty-text">添加专业技能，展示你的技术栈</span>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
 
           <div class="resume-extra">
-            <div class="diagnosis-card">
-              <h3>简历诊断</h3>
-              <div class="diagnosis-score">
-                <span class="score-number">1</span>
-                <span class="score-text">项待优化</span>
-              </div>
-              <div class="diagnosis-item">
-                <span class="item-title">完善简历内容</span>
-                <span class="item-count">1项建议完善</span>
-              </div>
-              <div
-                class="diagnosis-suggestion"
-                v-if="resume.education && resume.education.length > 0"
-              >
-                <div class="suggestion-header">
-                  <span class="school-name">{{ resume.education[0].school }}</span>
-                  <span class="school-time"
-                    >{{ resume.education[0].startDate }} - {{ resume.education[0].endDate }}</span
-                  >
-                </div>
-                <p class="suggestion-text">建议填写毕设/论文</p>
-                <p class="suggestion-tip">
-                  Boss对你的毕业论文很感兴趣，建议填写毕业设计或论文，以展现你的专业能力
-                </p>
-              </div>
-            </div>
-
             <div class="privacy-card">
               <h3>隐私设置</h3>
               <div class="privacy-item">
@@ -301,49 +572,6 @@
       </div>
     </main>
     <AppFooter />
-
-    <el-dialog
-      v-model="basicInfoDialogVisible"
-      title="编辑基本信息"
-      width="500px"
-      :close-on-click-modal="false"
-    >
-      <el-form label-width="80px">
-        <el-form-item label="姓名">
-          <el-input v-model="basicInfoForm.name" placeholder="请输入姓名" />
-        </el-form-item>
-        <el-form-item label="性别">
-          <el-radio-group v-model="basicInfoForm.gender">
-            <el-radio label="男">男</el-radio>
-            <el-radio label="女">女</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="求职状态">
-          <el-select v-model="basicInfoForm.jobStatus" placeholder="请选择求职状态">
-            <el-option-group label="学生">
-              <el-option label="在校-看看机会" value="在校-看看机会" />
-              <el-option label="离校-随时到岗" value="离校-随时到岗" />
-            </el-option-group>
-            <el-option-group label="社会人士">
-              <el-option label="在职-看看机会" value="在职-看看机会" />
-              <el-option label="离职-随时到岗" value="离职-随时到岗" />
-            </el-option-group>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="basicInfoForm.phone" placeholder="请输入手机号" />
-        </el-form-item>
-        <el-form-item label="邮箱">
-          <el-input v-model="basicInfoForm.email" placeholder="请输入邮箱" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="basicInfoDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="saveBasicInfo">确定</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -405,6 +633,10 @@ interface Education {
 const resume = ref({
   name: '',
   gender: '',
+  birthday: '',
+  location: '',
+  politicalStatus: '',
+  identity: '学生',
   jobStatus: '',
   phone: '',
   email: '',
@@ -428,6 +660,10 @@ const fetchResume = async (): Promise<void> => {
     resume.value = {
       name: data.name || userStore.userInfo?.username || '',
       gender: '',
+      birthday: (data as unknown as { birthday?: string }).birthday || '',
+      location: '',
+      politicalStatus: '',
+      identity: '学生',
       jobStatus: '',
       phone: data.phone || userStore.userInfo?.phone || '',
       email: data.email || userStore.userInfo?.email || '',
@@ -477,6 +713,36 @@ const parseSkills = (data: unknown): string[] => {
   return []
 }
 
+const calculateAge = (birthday: string): number => {
+  if (!birthday) return 0
+  const birth = new Date(birthday)
+  const now = new Date()
+  let age = now.getFullYear() - birth.getFullYear()
+  const monthDiff = now.getMonth() - birth.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    age--
+  }
+  return age
+}
+
+const getEducationLevel = (): string => {
+  if (!resume.value.education || resume.value.education.length === 0) return '未填写'
+  const edu = resume.value.education[0]
+  return edu.degree || '未填写'
+}
+
+const getSchoolName = (): string => {
+  if (!resume.value.education || resume.value.education.length === 0) return '未填写'
+  const edu = resume.value.education[0]
+  return edu.school || '未填写'
+}
+
+const getMajorName = (): string => {
+  if (!resume.value.education || resume.value.education.length === 0) return '未填写'
+  const edu = resume.value.education[0]
+  return edu.major || '未填写'
+}
+
 const scrollToSection = (sectionId: string): void => {
   activeSection.value = sectionId
   const element = document.getElementById(sectionId)
@@ -491,11 +757,64 @@ const editingContent = ref('')
 const startEdit = (section: string): void => {
   editingSection.value = section
   switch (section) {
+    case 'basicInfo':
+      basicInfoForm.value = {
+        name: resume.value.name,
+        gender: resume.value.gender,
+        birthday: resume.value.birthday,
+        location: resume.value.location,
+        politicalStatus: resume.value.politicalStatus,
+        identity: resume.value.identity || '学生',
+        jobStatus: resume.value.jobStatus,
+        phone: resume.value.phone,
+        email: resume.value.email,
+      }
+      break
     case 'advantage':
       editingContent.value = resume.value.advantage
       break
     case 'intention':
-      editingContent.value = resume.value.jobIntention
+      intentionForm.value = {
+        jobIntention: resume.value.jobIntention,
+        expectedSalary: resume.value.expectedSalary,
+        expectedLocation: resume.value.expectedLocation,
+      }
+      break
+    case 'work':
+      workForm.value = {
+        company: '',
+        position: '',
+        startDate: '',
+        endDate: '',
+        description: '',
+      }
+      break
+    case 'project':
+      projectForm.value = {
+        name: '',
+        role: '',
+        time: '',
+        description: '',
+      }
+      break
+    case 'education':
+      educationForm.value = {
+        school: '',
+        major: '',
+        degree: '',
+        startDate: '',
+        endDate: '',
+      }
+      break
+    case 'certificate':
+      certificateForm.value = {
+        name: '',
+      }
+      break
+    case 'skills':
+      skillForm.value = {
+        name: '',
+      }
       break
     default:
       editingContent.value = ''
@@ -512,34 +831,152 @@ const cancelEdit = (): void => {
   editingSection.value = ''
 }
 
-const basicInfoDialogVisible = ref(false)
 const basicInfoForm = ref({
   name: '',
   gender: '',
+  birthday: '',
+  location: '',
+  politicalStatus: '',
+  identity: '学生',
   jobStatus: '',
   phone: '',
   email: '',
 })
 
-const editBasicInfo = (): void => {
-  basicInfoForm.value = {
-    name: resume.value.name,
-    gender: resume.value.gender,
-    jobStatus: resume.value.jobStatus,
-    phone: resume.value.phone,
-    email: resume.value.email,
-  }
-  basicInfoDialogVisible.value = true
+const handleIdentityChange = (): void => {
+  basicInfoForm.value.jobStatus = ''
 }
 
-const saveBasicInfo = async (): Promise<void> => {
+const saveBasicInfoInline = async (): Promise<void> => {
   resume.value.name = basicInfoForm.value.name
   resume.value.gender = basicInfoForm.value.gender
+  resume.value.birthday = basicInfoForm.value.birthday
+  resume.value.location = basicInfoForm.value.location
+  resume.value.politicalStatus = basicInfoForm.value.politicalStatus
+  resume.value.identity = basicInfoForm.value.identity
   resume.value.jobStatus = basicInfoForm.value.jobStatus
   resume.value.phone = basicInfoForm.value.phone
   resume.value.email = basicInfoForm.value.email
-  basicInfoDialogVisible.value = false
+  editingSection.value = ''
   ElMessage.success('保存成功')
+}
+
+const intentionForm = ref({
+  jobIntention: '',
+  expectedSalary: '',
+  expectedLocation: '',
+})
+
+const saveIntentionInline = async (): Promise<void> => {
+  resume.value.jobIntention = intentionForm.value.jobIntention
+  resume.value.expectedSalary = intentionForm.value.expectedSalary
+  resume.value.expectedLocation = intentionForm.value.expectedLocation
+  editingSection.value = ''
+  ElMessage.success('保存成功')
+}
+
+const workForm = ref({
+  company: '',
+  position: '',
+  startDate: '',
+  endDate: '',
+  description: '',
+})
+
+const saveWorkInline = async (): Promise<void> => {
+  resume.value.workExperience.push({
+    company: workForm.value.company,
+    position: workForm.value.position,
+    startDate: workForm.value.startDate,
+    endDate: workForm.value.endDate,
+    description: workForm.value.description,
+  })
+  editingSection.value = ''
+  workForm.value = {
+    company: '',
+    position: '',
+    startDate: '',
+    endDate: '',
+    description: '',
+  }
+  ElMessage.success('添加成功')
+}
+
+const projectForm = ref({
+  name: '',
+  role: '',
+  time: '',
+  description: '',
+})
+
+const saveProjectInline = async (): Promise<void> => {
+  resume.value.projectExperience.push({
+    name: projectForm.value.name,
+    role: projectForm.value.role,
+    time: projectForm.value.time,
+    description: projectForm.value.description,
+  })
+  editingSection.value = ''
+  projectForm.value = {
+    name: '',
+    role: '',
+    time: '',
+    description: '',
+  }
+  ElMessage.success('添加成功')
+}
+
+const educationForm = ref({
+  school: '',
+  major: '',
+  degree: '',
+  startDate: '',
+  endDate: '',
+})
+
+const saveEducationInline = async (): Promise<void> => {
+  resume.value.education.push({
+    school: educationForm.value.school,
+    major: educationForm.value.major,
+    degree: educationForm.value.degree,
+    startDate: educationForm.value.startDate,
+    endDate: educationForm.value.endDate,
+  })
+  editingSection.value = ''
+  educationForm.value = {
+    school: '',
+    major: '',
+    degree: '',
+    startDate: '',
+    endDate: '',
+  }
+  ElMessage.success('添加成功')
+}
+
+const certificateForm = ref({
+  name: '',
+})
+
+const saveCertificateInline = async (): Promise<void> => {
+  resume.value.certificates.push(certificateForm.value.name)
+  editingSection.value = ''
+  certificateForm.value = {
+    name: '',
+  }
+  ElMessage.success('添加成功')
+}
+
+const skillForm = ref({
+  name: '',
+})
+
+const saveSkillInline = async (): Promise<void> => {
+  resume.value.skills.push(skillForm.value.name)
+  editingSection.value = ''
+  skillForm.value = {
+    name: '',
+  }
+  ElMessage.success('添加成功')
 }
 
 onMounted(() => {
@@ -653,15 +1090,16 @@ onMounted(() => {
         font-size: 24px;
         font-weight: 500;
         color: #222;
-        margin: 0 0 12px 0;
+        margin: 0 0 16px 0;
+      }
+
+      .info-details {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
 
       .info-row {
-        display: flex;
-        gap: 24px;
-      }
-
-      .info-item {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -669,6 +1107,7 @@ onMounted(() => {
         .label {
           font-size: 14px;
           color: #999;
+          min-width: 70px;
         }
 
         .value {
@@ -682,27 +1121,8 @@ onMounted(() => {
       margin-top: 8px;
     }
 
-    .contact-row {
-      display: flex;
-      gap: 40px;
-      padding: 16px 0;
-      border-top: 1px solid #f5f5f5;
-    }
-
-    .contact-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-
-      .contact-label {
-        font-size: 14px;
-        color: #999;
-      }
-
-      .contact-value {
-        font-size: 14px;
-        color: #333;
-      }
+    .basic-info-form {
+      margin-top: 8px;
     }
   }
 
@@ -734,6 +1154,40 @@ onMounted(() => {
 .edit-actions {
   display: flex;
   gap: 8px;
+}
+
+.edit-link {
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.inline-edit-form {
+  .form-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    label {
+      width: 80px;
+      flex-shrink: 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .el-input,
+    .el-select,
+    .el-date-picker,
+    .el-radio-group {
+      flex: 1;
+    }
+  }
 }
 
 .empty-placeholder {
@@ -879,7 +1333,6 @@ onMounted(() => {
   flex-direction: column;
   gap: 16px;
 
-  .diagnosis-card,
   .privacy-card,
   .tools-card,
   .attachment-card {
@@ -892,79 +1345,6 @@ onMounted(() => {
       font-weight: 600;
       color: #222;
       margin: 0 0 16px 0;
-    }
-  }
-
-  .diagnosis-card {
-    .diagnosis-score {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-      margin-bottom: 16px;
-
-      .score-number {
-        font-size: 24px;
-        font-weight: 600;
-        color: $primary;
-      }
-
-      .score-text {
-        font-size: 14px;
-        color: #666;
-      }
-    }
-
-    .diagnosis-item {
-      margin-bottom: 16px;
-
-      .item-title {
-        display: block;
-        font-size: 14px;
-        font-weight: 500;
-        color: #222;
-        margin-bottom: 4px;
-      }
-
-      .item-count {
-        font-size: 12px;
-        color: #999;
-      }
-    }
-
-    .diagnosis-suggestion {
-      padding: 12px;
-      background: #fafafa;
-      border-radius: 6px;
-
-      .suggestion-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-
-        .school-name {
-          font-size: 14px;
-          font-weight: 500;
-          color: #222;
-        }
-
-        .school-time {
-          font-size: 12px;
-          color: #999;
-        }
-      }
-
-      .suggestion-text {
-        font-size: 14px;
-        color: #222;
-        margin: 0 0 4px 0;
-      }
-
-      .suggestion-tip {
-        font-size: 12px;
-        color: #999;
-        margin: 0;
-        line-height: 1.5;
-      }
     }
   }
 

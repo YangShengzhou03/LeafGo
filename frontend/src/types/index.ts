@@ -4,7 +4,7 @@ export interface User {
   email: string
   phone?: string
   avatar?: string
-  userType: 'JOB_SEEKER' | 'EMPLOYER'
+  userType: 'JOB_SEEKER' | 'EMPLOYER' | 'ADMIN'
   status: 'ACTIVE' | 'INACTIVE' | 'BANNED'
   createdAt: string
   updatedAt: string

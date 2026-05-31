@@ -23,6 +23,10 @@ export const companyApi = {
     return request.put(`/companies/${companyId}`, data)
   },
 
+  createCompany(data: Partial<Company>): Promise<Company> {
+    return request.post('/companies', data)
+  },
+
   getCompanyJobs(
     companyId: number,
     params: { page?: number; size?: number }

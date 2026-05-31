@@ -367,6 +367,8 @@ onMounted(() => {
   .conversations {
     flex: 1;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 
     .conversation-item {
       display: flex;
@@ -430,6 +432,13 @@ onMounted(() => {
           white-space: nowrap;
         }
       }
+    }
+
+    .el-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 }

@@ -1,87 +1,94 @@
 <template>
   <div class="employer-messages">
-    <div class="messages-container">
-      <div class="conversations-list">
-        <div class="list-header">
-          <h3>消息列表</h3>
-        </div>
-        <div class="conversations">
-          <div
-            v-for="conv in conversations"
-            :key="conv.id"
-            class="conversation-item"
-            :class="{ active: activeConversation?.id === conv.id }"
-            @click="selectConversation(conv)"
-          >
-            <el-avatar :size="40">
-              {{ conv.user1?.username?.charAt(0) || conv.user2?.username?.charAt(0) || '?' }}
-            </el-avatar>
-            <div class="conv-info">
-              <div class="conv-name">
-                {{
-                  conv.user1Id === userStore.userInfo?.id
-                    ? conv.user2?.username
-                    : conv.user1?.username
-                }}
+    <EmployerNavBar />
+    <main class="main-content">
+      <div class="container">
+        <div class="messages-container">
+          <div class="conversations-list">
+            <div class="list-header">
+              <h3>消息列表</h3>
+            </div>
+            <div class="conversations">
+              <div
+                v-for="conv in conversations"
+                :key="conv.id"
+                class="conversation-item"
+                :class="{ active: activeConversation?.id === conv.id }"
+                @click="selectConversation(conv)"
+              >
+                <el-avatar :size="40">
+                  {{ conv.user1?.username?.charAt(0) || conv.user2?.username?.charAt(0) || '?' }}
+                </el-avatar>
+                <div class="conv-info">
+                  <div class="conv-name">
+                    {{
+                      conv.user1Id === userStore.userInfo?.id
+                        ? conv.user2?.username
+                        : conv.user1?.username
+                    }}
+                  </div>
+                  <div class="conv-last-msg">{{ conv.lastMessage }}</div>
+                </div>
+                <div class="conv-time">{{ formatTime(conv.lastMessageTime) }}</div>
               </div>
-              <div class="conv-last-msg">{{ conv.lastMessage }}</div>
-            </div>
-            <div class="conv-time">{{ formatTime(conv.lastMessageTime) }}</div>
-          </div>
-          <el-empty v-if="conversations.length === 0" description="暂无消息" />
-        </div>
-      </div>
-
-      <div class="chat-area">
-        <div class="chat-header" v-if="activeConversation">
-          <h3>
-            {{
-              activeConversation.user1Id === userStore.userInfo?.id
-                ? activeConversation.user2?.username
-                : activeConversation.user1?.username
-            }}
-          </h3>
-        </div>
-        <div class="chat-placeholder" v-else>
-          <el-icon size="48" color="#dcdfe6"><ChatDotRound /></el-icon>
-          <p>选择一个会话开始聊天</p>
-        </div>
-
-        <div class="chat-messages" ref="messagesContainer" v-if="activeConversation">
-          <div
-            v-for="msg in messages"
-            :key="msg.id"
-            class="message-item"
-            :class="{ 'is-mine': msg.senderId === userStore.userInfo?.id }"
-          >
-            <el-avatar :size="36">
-              {{ msg.sender?.username?.charAt(0) || '?' }}
-            </el-avatar>
-            <div class="message-content">
-              <div class="message-text">{{ msg.content }}</div>
-              <div class="message-time">{{ formatTime(msg.createdAt) }}</div>
+              <el-empty v-if="conversations.length === 0" description="暂无消息" />
             </div>
           </div>
-          <div v-if="messages.length === 0" class="empty-messages">
-            <el-empty description="暂无消息记录" />
+
+          <div class="chat-area">
+            <div class="chat-header" v-if="activeConversation">
+              <h3>
+                {{
+                  activeConversation.user1Id === userStore.userInfo?.id
+                    ? activeConversation.user2?.username
+                    : activeConversation.user1?.username
+                }}
+              </h3>
+            </div>
+            <div class="chat-placeholder" v-else>
+              <el-empty description="选择一个会话开始聊天" />
+            </div>
+
+            <div class="chat-messages" ref="messagesContainer" v-if="activeConversation">
+              <div
+                v-for="msg in messages"
+                :key="msg.id"
+                class="message-item"
+                :class="{ 'is-mine': msg.senderId === userStore.userInfo?.id }"
+              >
+                <el-avatar :size="36">
+                  {{ msg.sender?.username?.charAt(0) || '?' }}
+                </el-avatar>
+                <div class="message-content">
+                  <div class="message-text">{{ msg.content }}</div>
+                  <div class="message-time">{{ formatTime(msg.createdAt) }}</div>
+                </div>
+              </div>
+              <div v-if="messages.length === 0" class="empty-messages">
+                <el-empty description="暂无消息记录" />
+              </div>
+            </div>
+
+            <div class="chat-input" v-if="activeConversation">
+              <el-input v-model="messageInput" placeholder="输入消息..." @keyup.enter="sendMessage">
+                <template #append>
+                  <el-button type="primary" @click="sendMessage">发送</el-button>
+                </template>
+              </el-input>
+            </div>
           </div>
         </div>
-
-        <div class="chat-input" v-if="activeConversation">
-          <el-input v-model="messageInput" placeholder="输入消息..." @keyup.enter="sendMessage">
-            <template #append>
-              <el-button type="primary" @click="sendMessage">发送</el-button>
-            </template>
-          </el-input>
-        </div>
       </div>
-    </div>
+    </main>
+    <AppFooter />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 import { ChatDotRound } from '@element-plus/icons-vue'
+import EmployerNavBar from '@/components/EmployerNavBar.vue'
+import AppFooter from '@/components/AppFooter.vue'
 import { messageApi } from '@/api'
 import { useUserStore } from '@/store/user'
 import type { Conversation, Message } from '@/types'
@@ -158,181 +165,196 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .employer-messages {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fa;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
   height: calc(100vh - 140px);
+}
 
-  .messages-container {
+.messages-container {
+  display: flex;
+  height: 100%;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+
+  .conversations-list {
+    width: 300px;
+    border-right: 1px solid #e4e7ed;
     display: flex;
-    height: 100%;
-    background: #fff;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    flex-direction: column;
 
-    .conversations-list {
-      width: 300px;
-      border-right: 1px solid #e4e7ed;
+    .list-header {
+      padding: 16px;
+      border-bottom: 1px solid #e4e7ed;
+
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #303133;
+      }
+    }
+
+    .conversations {
+      flex: 1;
+      overflow-y: auto;
+
+      .conversation-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        cursor: pointer;
+
+        &:hover {
+          background: #f5f7fa;
+        }
+
+        &.active {
+          background: #ecf5ff;
+        }
+
+        .conv-info {
+          flex: 1;
+          margin-left: 12px;
+          overflow: hidden;
+
+          .conv-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #303133;
+            margin-bottom: 4px;
+          }
+
+          .conv-last-msg {
+            font-size: 12px;
+            color: #909399;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+
+        .conv-time {
+          font-size: 12px;
+          color: #c0c4cc;
+          margin-left: 8px;
+        }
+      }
+    }
+  }
+
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e4e7ed;
+      background: #fafafa;
+
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #303133;
+      }
+    }
+
+    .chat-placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      p {
+        margin-top: 12px;
+        color: #909399;
+        font-size: 14px;
+      }
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
       display: flex;
       flex-direction: column;
 
-      .list-header {
-        padding: 16px;
-        border-bottom: 1px solid #e4e7ed;
-
-        h3 {
-          margin: 0;
-          font-size: 16px;
-          font-weight: 600;
-        }
+      .empty-messages {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
-      .conversations {
-        flex: 1;
-        overflow-y: auto;
+      .message-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 16px;
 
-        .conversation-item {
-          display: flex;
-          align-items: center;
-          padding: 12px 16px;
-          cursor: pointer;
-          transition: background 0.3s;
+        .message-content {
+          margin-left: 12px;
+          max-width: 60%;
 
-          &:hover {
+          .message-text {
             background: #f5f7fa;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #303133;
+            line-height: 1.5;
           }
 
-          &.active {
-            background: #ecf5ff;
-          }
-
-          .conv-info {
-            flex: 1;
-            margin-left: 12px;
-            overflow: hidden;
-
-            .conv-name {
-              font-size: 14px;
-              font-weight: 500;
-              color: #303133;
-              margin-bottom: 4px;
-            }
-
-            .conv-last-msg {
-              font-size: 12px;
-              color: #909399;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-          }
-
-          .conv-time {
+          .message-time {
             font-size: 12px;
             color: #c0c4cc;
-            margin-left: 8px;
+            margin-top: 4px;
+          }
+        }
+
+        &.is-mine {
+          flex-direction: row-reverse;
+
+          .message-content {
+            margin-left: 0;
+            margin-right: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+
+            .message-text {
+              background: #409eff;
+              color: #fff;
+            }
+
+            .message-time {
+              text-align: right;
+            }
           }
         }
       }
     }
 
-    .chat-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-
-      .chat-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid #e4e7ed;
-        background: #fafafa;
-
-        h3 {
-          margin: 0;
-          font-size: 16px;
-          font-weight: 600;
-        }
-      }
-
-      .chat-placeholder {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-
-        p {
-          margin-top: 12px;
-          color: #909399;
-          font-size: 14px;
-        }
-      }
-
-      .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-
-        .empty-messages {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .message-item {
-          display: flex;
-          align-items: flex-start;
-          margin-bottom: 16px;
-
-          .message-content {
-            margin-left: 12px;
-            max-width: 60%;
-
-            .message-text {
-              background: #f0f2f5;
-              padding: 10px 14px;
-              border-radius: 12px 12px 12px 0;
-              font-size: 14px;
-              color: #303133;
-              line-height: 1.5;
-            }
-
-            .message-time {
-              font-size: 12px;
-              color: #c0c4cc;
-              margin-top: 4px;
-            }
-          }
-
-          &.is-mine {
-            flex-direction: row-reverse;
-
-            .message-content {
-              margin-left: 0;
-              margin-right: 12px;
-              display: flex;
-              flex-direction: column;
-              align-items: flex-end;
-
-              .message-text {
-                background: #00bebd;
-                color: #fff;
-                border-radius: 12px 12px 0 12px;
-              }
-
-              .message-time {
-                text-align: right;
-              }
-            }
-          }
-        }
-      }
-
-      .chat-input {
-        padding: 16px 20px;
-        border-top: 1px solid #e4e7ed;
-        background: #fafafa;
-      }
+    .chat-input {
+      padding: 16px 20px;
+      border-top: 1px solid #e4e7ed;
+      background: #fafafa;
     }
   }
 }

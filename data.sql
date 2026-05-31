@@ -176,10 +176,10 @@ CREATE TABLE IF NOT EXISTS favorites (
 
 -- 插入测试数据
 INSERT INTO users (username, email, password, phone, user_type, status) VALUES
-('张三', 'zhangsan@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13800138001', 'JOB_SEEKER', 'ACTIVE'),
-('李四', 'lisi@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13800138002', 'JOB_SEEKER', 'ACTIVE'),
-('王五', 'wangwu@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13800138003', 'EMPLOYER', 'ACTIVE'),
-('赵六', 'zhaoliu@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13800138004', 'EMPLOYER', 'ACTIVE');
+('求职者1', 'seeker1@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13397062330', 'JOB_SEEKER', 'ACTIVE'),
+('求职者2', 'seeker2@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '133970623333', 'JOB_SEEKER', 'ACTIVE'),
+('招聘者', 'employer@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13397062331', 'EMPLOYER', 'ACTIVE'),
+('管理员', 'admin@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '13397062332', 'ADMIN', 'ACTIVE');
 
 -- 测试企业
 INSERT INTO companies (user_id, name, logo, scale, industry, description, province, city, district, address, website, verified, benefits, work_time, boss_info) VALUES

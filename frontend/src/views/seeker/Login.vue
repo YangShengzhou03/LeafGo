@@ -176,24 +176,28 @@ const submit = async (): Promise<void> => {
       } else {
         router.push('/')
       }
-    } catch {
-      await userStore.register({
-        username: form.phone,
-        phone: form.phone,
-        code: form.code,
-        userType: userType.value,
-      })
-      ElMessage.success('注册成功')
+    } catch (loginError) {
+      const errorMessage = loginError instanceof Error ? loginError.message : ''
+      if (errorMessage.includes('未注册') || errorMessage.includes('不存在')) {
+        await userStore.register({
+          username: form.phone,
+          phone: form.phone,
+          code: form.code,
+          userType: userType.value,
+        })
+        ElMessage.success('注册成功')
 
-      if (userType.value === 'EMPLOYER') {
-        router.push('/employer')
+        if (userType.value === 'EMPLOYER') {
+          router.push('/employer')
+        } else {
+          router.push('/')
+        }
       } else {
-        router.push('/')
+        throw loginError
       }
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : '操作失败，请稍后重试'
-    ElMessage.error(message)
+    console.error('Login/Register failed:', error)
   } finally {
     loading.value = false
   }

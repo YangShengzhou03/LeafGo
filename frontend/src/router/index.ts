@@ -93,45 +93,45 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/employer',
-    component: () => import('@/layouts/EmployerLayout.vue'),
+    name: 'EmployerHome',
+    component: () => import('@/views/employer/Home.vue'),
     meta: { requiresAuth: true, role: 'EMPLOYER' },
-    children: [
-      {
-        path: '',
-        name: 'EmployerHome',
-        component: () => import('@/views/employer/Home.vue'),
-      },
-      {
-        path: 'jobs',
-        name: 'EmployerJobs',
-        component: () => import('@/views/employer/Jobs.vue'),
-      },
-      {
-        path: 'jobs/create',
-        name: 'EmployerJobCreate',
-        component: () => import('@/views/employer/JobForm.vue'),
-      },
-      {
-        path: 'jobs/:id/edit',
-        name: 'EmployerJobEdit',
-        component: () => import('@/views/employer/JobForm.vue'),
-      },
-      {
-        path: 'candidates',
-        name: 'EmployerCandidates',
-        component: () => import('@/views/employer/Candidates.vue'),
-      },
-      {
-        path: 'company',
-        name: 'EmployerCompany',
-        component: () => import('@/views/employer/Company.vue'),
-      },
-      {
-        path: 'messages',
-        name: 'EmployerMessages',
-        component: () => import('@/views/employer/Messages.vue'),
-      },
-    ],
+  },
+  {
+    path: '/employer/jobs',
+    name: 'EmployerJobs',
+    component: () => import('@/views/employer/Jobs.vue'),
+    meta: { requiresAuth: true, role: 'EMPLOYER' },
+  },
+  {
+    path: '/employer/jobs/create',
+    name: 'EmployerJobCreate',
+    component: () => import('@/views/employer/JobForm.vue'),
+    meta: { requiresAuth: true, role: 'EMPLOYER' },
+  },
+  {
+    path: '/employer/jobs/:id/edit',
+    name: 'EmployerJobEdit',
+    component: () => import('@/views/employer/JobForm.vue'),
+    meta: { requiresAuth: true, role: 'EMPLOYER' },
+  },
+  {
+    path: '/employer/candidates',
+    name: 'EmployerCandidates',
+    component: () => import('@/views/employer/Candidates.vue'),
+    meta: { requiresAuth: true, role: 'EMPLOYER' },
+  },
+  {
+    path: '/employer/profile',
+    name: 'EmployerProfile',
+    component: () => import('@/views/employer/Profile.vue'),
+    meta: { requiresAuth: true, role: 'EMPLOYER' },
+  },
+  {
+    path: '/employer/messages',
+    name: 'EmployerMessages',
+    component: () => import('@/views/employer/Messages.vue'),
+    meta: { requiresAuth: true, role: 'EMPLOYER' },
   },
   {
     path: '/admin',
@@ -172,8 +172,12 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
+
+  if (userStore.isLoggedIn && !userStore.userInfo) {
+    await userStore.initUser()
+  }
 
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
     next('/login')
@@ -181,6 +185,8 @@ router.beforeEach((to, _from, next) => {
     const role = userStore.userInfo?.userType
     if (role === 'EMPLOYER') {
       next('/employer')
+    } else if (role === 'ADMIN') {
+      next('/admin')
     } else {
       next('/')
     }
@@ -189,6 +195,8 @@ router.beforeEach((to, _from, next) => {
     if (role !== to.meta.role) {
       if (role === 'EMPLOYER') {
         next('/employer')
+      } else if (role === 'ADMIN') {
+        next('/admin')
       } else {
         next('/')
       }

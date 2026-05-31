@@ -8,101 +8,158 @@
             <el-avatar :size="80" class="user-avatar">{{
               userStore.userInfo?.username?.charAt(0) || 'U'
             }}</el-avatar>
-            <div class="user-details">
+            <div class="user-info-right">
               <h1 class="username">{{ userStore.userInfo?.username || '用户' }}</h1>
-              <p class="user-basic-info" v-if="resume.birthday">
-                {{ calculateAge(resume.birthday) }}岁·{{ resume.jobStatus || '26年应届生本科' }}
-              </p>
-              <p class="user-expectation" v-if="resume.jobIntention">
-                期望：{{ resume.jobIntention }}·{{ resume.expectedSalary || '6-10K' }}
-              </p>
-              <p class="user-education" v-if="resume.education && resume.education.length > 0">
-                {{ resume.education[0].school }}·{{ resume.education[0].major
-                }}{{ resume.education[0].startDate }}-{{ resume.education[0].endDate }}
-              </p>
-              <p class="user-work" v-if="resume.workExperience && resume.workExperience.length > 0">
-                {{ resume.workExperience[0].company }}·{{ resume.workExperience[0].position
-                }}{{ resume.workExperience[0].startDate }}-{{
-                  resume.workExperience[0].endDate || '至今'
-                }}
-              </p>
+              <div class="user-stats">
+                <div class="stat-item">
+                  <span class="stat-value">{{ stats.communicated }}</span>
+                  <span class="stat-label">沟通过</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value">{{ stats.applied }}</span>
+                  <span class="stat-label">已投递</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value">{{ stats.interview }}</span>
+                  <span class="stat-label">面试</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value">{{ stats.interested }}</span>
+                  <span class="stat-label">感兴趣</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value">{{ stats.records }}</span>
+                  <span class="stat-label">网申记录</span>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div class="user-stats">
-            <div class="stat-item">
-              <span class="stat-label">在线简历</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ stats.communicated }}</span>
-              <span class="stat-label">沟通过</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ stats.applied }}</span>
-              <span class="stat-label">已投递</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ stats.interview }}</span>
-              <span class="stat-label">面试</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ stats.interested }}</span>
-              <span class="stat-label">感兴趣</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">{{ stats.records }}</span>
-              <span class="stat-label">网申记录</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="profile-menu">
-          <div
-            class="menu-item"
-            :class="{ active: activeMenu === 'favorites' }"
-            @click="activeMenu = 'favorites'"
-          >
-            <el-icon><Star /></el-icon>
-            <span>我的收藏</span>
-          </div>
-          <div
-            class="menu-item"
-            :class="{ active: activeMenu === 'applications' }"
-            @click="activeMenu = 'applications'"
-          >
-            <el-icon><Document /></el-icon>
-            <span>投递记录</span>
           </div>
         </div>
 
         <div class="profile-content">
-          <div class="profile-section" v-if="activeMenu === 'favorites'">
-            <h2>我的收藏</h2>
-            <div class="favorites-list" v-if="favorites.length > 0">
-              <div class="favorite-item" v-for="job in favorites" :key="job.id">
-                <div class="job-info">
-                  <h4>{{ job.title }}</h4>
-                  <p>{{ job.company }} · {{ job.location }}</p>
-                </div>
-                <div class="job-salary">{{ job.salary }}</div>
-              </div>
-            </div>
-            <el-empty v-else description="暂无收藏" />
-          </div>
+          <el-tabs v-model="activeTab" type="card">
+            <el-tab-pane label="收藏岗位" name="favoriteJobs">
+              <el-table
+                :data="favoriteJobs"
+                style="width: 100%"
+                :header-cell-style="{ background: '#fafafa', color: '#606266' }"
+              >
+                <el-table-column prop="title" label="职位名称" min-width="180" />
+                <el-table-column prop="company" label="公司" width="180" />
+                <el-table-column prop="location" label="地点" width="120" />
+                <el-table-column prop="salary" label="薪资" width="120" />
+                <el-table-column label="操作" width="60">
+                  <template #default="{ row }">
+                    <span class="link-text" @click="viewJob(row.id)">查看</span>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
 
-          <div class="profile-section" v-else-if="activeMenu === 'applications'">
-            <h2>投递记录</h2>
-            <div class="applications-list" v-if="applications.length > 0">
-              <div class="application-item" v-for="app in applications" :key="app.id">
-                <div class="job-info">
-                  <h4>{{ app.jobTitle }}</h4>
-                  <p>{{ app.company }} · {{ app.time }}</p>
-                </div>
-                <el-tag :type="getStatusType(app.status)">{{ app.status }}</el-tag>
-              </div>
-            </div>
-            <el-empty v-else description="暂无投递记录" />
-          </div>
+            <el-tab-pane label="收藏公司" name="favoriteCompanies">
+              <el-table
+                :data="favoriteCompanies"
+                style="width: 100%"
+                :header-cell-style="{ background: '#fafafa', color: '#606266' }"
+              >
+                <el-table-column prop="name" label="公司名称" min-width="200" />
+                <el-table-column prop="industry" label="行业" width="150" />
+                <el-table-column prop="scale" label="规模" width="120" />
+                <el-table-column label="操作" width="60">
+                  <template #default="{ row }">
+                    <span class="link-text" @click="viewCompany(row.id)">查看</span>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="投递记录" name="applications">
+              <el-table
+                :data="applications"
+                style="width: 100%"
+                :header-cell-style="{ background: '#fafafa', color: '#606266' }"
+              >
+                <el-table-column prop="jobTitle" label="职位名称" min-width="180" />
+                <el-table-column prop="company" label="公司" width="180" />
+                <el-table-column prop="time" label="投递时间" width="120" />
+                <el-table-column prop="status" label="状态" width="100">
+                  <template #default="{ row }">
+                    <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="60">
+                  <template #default="{ row }">
+                    <span class="link-text" @click="viewJob(row.jobId)">查看</span>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="沟通过" name="communicated">
+              <el-table
+                :data="communicatedJobs"
+                style="width: 100%"
+                :header-cell-style="{ background: '#fafafa', color: '#606266' }"
+              >
+                <el-table-column prop="jobTitle" label="职位名称" min-width="180" />
+                <el-table-column prop="company" label="公司" width="180" />
+                <el-table-column prop="lastMessage" label="最新消息" min-width="200" />
+                <el-table-column prop="time" label="时间" width="120" />
+              </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="已投递" name="submitted">
+              <el-table
+                :data="submittedJobs"
+                style="width: 100%"
+                :header-cell-style="{ background: '#fafafa', color: '#606266' }"
+              >
+                <el-table-column prop="jobTitle" label="职位名称" min-width="180" />
+                <el-table-column prop="company" label="公司" width="180" />
+                <el-table-column prop="time" label="投递时间" width="120" />
+                <el-table-column label="操作" width="80">
+                  <template #default="{ row }">
+                    <span class="link-text" @click="viewJob(row.jobId)">查看</span>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="面试" name="interview">
+              <el-table
+                :data="interviewJobs"
+                style="width: 100%"
+                :header-cell-style="{ background: '#fafafa', color: '#606266' }"
+              >
+                <el-table-column prop="jobTitle" label="职位名称" min-width="180" />
+                <el-table-column prop="company" label="公司" width="180" />
+                <el-table-column prop="time" label="面试时间" width="120" />
+                <el-table-column label="操作" width="80">
+                  <template #default="{ row }">
+                    <span class="link-text" @click="viewJob(row.jobId)">查看</span>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+
+            <el-tab-pane label="网申记录" name="onlineRecords">
+              <el-table
+                :data="onlineRecords"
+                style="width: 100%"
+                :header-cell-style="{ background: '#fafafa', color: '#606266' }"
+              >
+                <el-table-column prop="jobTitle" label="职位名称" min-width="180" />
+                <el-table-column prop="company" label="公司" width="180" />
+                <el-table-column prop="platform" label="平台" width="120" />
+                <el-table-column prop="time" label="申请时间" width="120" />
+                <el-table-column prop="status" label="状态" width="100">
+                  <template #default="{ row }">
+                    <el-tag :type="getStatusType(row.status)">{{ row.status }}</el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+          </el-tabs>
         </div>
       </div>
     </main>
@@ -112,7 +169,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Star, Document } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 import SeekerNavBar from '@/components/SeekerNavBar.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import { useUserStore } from '@/store/user'
@@ -124,9 +181,10 @@ defineOptions({
   name: 'ProfilePage',
 })
 
+const router = useRouter()
 const userStore = useUserStore()
 
-const activeMenu = ref('favorites')
+const activeTab = ref('favoriteJobs')
 
 const resume = ref({
   birthday: '',
@@ -158,16 +216,47 @@ interface FavoriteJob {
   salary: string
 }
 
+interface FavoriteCompany {
+  id: number
+  name: string
+  industry: string
+  scale: string
+}
+
 interface Application {
   id: number
+  jobId: number
   jobTitle: string
   company: string
   time: string
   status: string
 }
 
-const favorites = ref([] as FavoriteJob[])
+interface CommunicatedJob {
+  id: number
+  jobId: number
+  jobTitle: string
+  company: string
+  lastMessage: string
+  time: string
+}
+
+interface OnlineRecord {
+  id: number
+  jobTitle: string
+  company: string
+  platform: string
+  time: string
+  status: string
+}
+
+const favoriteJobs = ref([] as FavoriteJob[])
+const favoriteCompanies = ref([] as FavoriteCompany[])
 const applications = ref([] as Application[])
+const communicatedJobs = ref([] as CommunicatedJob[])
+const submittedJobs = ref([] as Application[])
+const interviewJobs = ref([] as Application[])
+const onlineRecords = ref([] as OnlineRecord[])
 
 const fetchResume = async (): Promise<void> => {
   if (!userStore.userInfo?.id) return
@@ -220,7 +309,7 @@ const fetchStats = async (): Promise<void> => {
 const fetchFavorites = async (): Promise<void> => {
   try {
     const data = await favoriteApi.getMyFavorites()
-    favorites.value = data.map((item) => ({
+    favoriteJobs.value = data.map((item) => ({
       id: item.job?.id || item.jobId,
       title: item.job?.title || '未知职位',
       company:
@@ -238,8 +327,9 @@ const fetchFavorites = async (): Promise<void> => {
 const fetchApplications = async (): Promise<void> => {
   try {
     const data = await applicationApi.getMyApplications()
-    applications.value = (data.content || []).map((item) => ({
+    const allApplications = (data.content || []).map((item) => ({
       id: item.id,
+      jobId: item.job?.id || 0,
       jobTitle: item.job?.title || '未知职位',
       company:
         typeof item.job?.company === 'object' && item.job?.company
@@ -247,6 +337,14 @@ const fetchApplications = async (): Promise<void> => {
           : '未知公司',
       time: new Date(item.createdAt).toLocaleDateString(),
       status: getStatusText(item.status),
+    }))
+
+    applications.value = allApplications
+    submittedJobs.value = allApplications.filter((app) => app.status === '待处理')
+    interviewJobs.value = allApplications.filter((app) => app.status === '已通过')
+    onlineRecords.value = allApplications.map((app) => ({
+      ...app,
+      platform: '本平台',
     }))
   } catch (error) {
     console.error('Failed to fetch applications:', error)
@@ -268,24 +366,6 @@ const getStatusText = (status: string): string => {
   }
 }
 
-const calculateAge = (birthday: string): number => {
-  const birth = new Date(birthday)
-  const now = new Date()
-  let age = now.getFullYear() - birth.getFullYear()
-  const monthDiff = now.getMonth() - birth.getMonth()
-  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
-    age--
-  }
-  return age
-}
-
-onMounted(() => {
-  fetchResume()
-  fetchStats()
-  fetchFavorites()
-  fetchApplications()
-})
-
 const getStatusType = (status: string): 'success' | 'warning' | 'danger' | 'info' => {
   switch (status) {
     case '已查看':
@@ -298,22 +378,36 @@ const getStatusType = (status: string): 'success' | 'warning' | 'danger' | 'info
       return 'info'
   }
 }
+
+const viewJob = (jobId: number): void => {
+  router.push(`/jobs/${jobId}`)
+}
+
+const viewCompany = (companyId: number): void => {
+  router.push(`/companies/${companyId}`)
+}
+
+onMounted(() => {
+  fetchResume()
+  fetchStats()
+  fetchFavorites()
+  fetchApplications()
+})
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/variables.scss' as *;
-
 .profile-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, rgba($primary-deep, 0.04) 0%, #f5f5f5 25%);
+  background: #f5f7fa;
 }
 
 .main-content {
-  padding: 20px 0;
+  padding: 24px 0;
 }
 
 .container {
-  max-width: 1246px;
+  max-width: 1200px;
+  min-height: 50vh;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -324,98 +418,51 @@ const getStatusType = (status: string): 'success' | 'warning' | 'danger' | 'info
   padding: 24px;
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-
-  .user-info-card {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #f0f0f0;
-
-    .user-avatar {
-      background: linear-gradient(135deg, $primary-soft 0%, $primary 100%);
-      color: white;
-      flex-shrink: 0;
-    }
-
-    .user-details {
-      flex: 1;
-
-      .username {
-        font-size: 24px;
-        font-weight: 600;
-        color: #222;
-        margin: 0 0 8px 0;
-      }
-
-      p {
-        font-size: 14px;
-        color: #666;
-        margin: 4px 0;
-        line-height: 1.6;
-      }
-
-      .user-basic-info,
-      .user-expectation {
-        color: #999;
-      }
-    }
-  }
-
-  .user-stats {
-    display: flex;
-    gap: 32px;
-
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-
-      .stat-value {
-        font-size: 18px;
-        font-weight: 600;
-        color: $primary;
-      }
-
-      .stat-label {
-        font-size: 14px;
-        color: #666;
-      }
-    }
-  }
 }
 
-.profile-menu {
-  background: white;
-  border-radius: 8px;
-  padding: 16px 24px;
-  margin-bottom: 20px;
+.user-info-card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.user-avatar {
+  background: #00b85c;
+  color: white;
+  flex-shrink: 0;
+}
+
+.user-info-right {
+  flex: 1;
+}
+
+.username {
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 16px 0;
+}
+
+.user-stats {
   display: flex;
   gap: 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
 
-  .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 14px;
-    color: #666;
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    &:hover {
-      background: #f5f5f5;
-      color: #222;
-    }
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #00b85c;
+}
 
-    &.active {
-      background: rgba($primary, 0.1);
-      color: $primary;
-      font-weight: 500;
-    }
-  }
+.stat-label {
+  font-size: 14px;
+  color: #909399;
 }
 
 .profile-content {
@@ -425,57 +472,14 @@ const getStatusType = (status: string): 'success' | 'warning' | 'danger' | 'info
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.profile-section {
-  h2 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #222;
-    margin: 0 0 24px 0;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f0f0f0;
+.link-text {
+  color: #00b85c;
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover {
+    color: #85ce61;
+    text-decoration: underline;
   }
-}
-
-.favorites-list,
-.applications-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.favorite-item,
-.application-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.job-info {
-  flex: 1;
-
-  h4 {
-    font-size: 16px;
-    font-weight: 500;
-    color: #222;
-    margin: 0 0 4px 0;
-  }
-
-  p {
-    font-size: 14px;
-    color: #999;
-    margin: 0;
-  }
-}
-
-.job-salary {
-  font-size: 16px;
-  font-weight: 600;
-  color: $primary;
 }
 </style>

@@ -3,7 +3,6 @@
     <div class="nav-container">
       <div class="logo" @click="$router.push('/employer')">
         <span class="logo-text">LeafGO 职达</span>
-        <span class="logo-badge">招聘者</span>
       </div>
 
       <nav class="nav-menu">
@@ -28,7 +27,7 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="company">企业信息</el-dropdown-item>
+                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
                 <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -56,8 +55,6 @@ const menuItems = [
   { path: '/employer', label: '首页' },
   { path: '/employer/jobs', label: '职位管理' },
   { path: '/employer/candidates', label: '候选人' },
-  { path: '/employer/company', label: '企业信息' },
-  { path: '/employer/messages', label: '消息' },
 ]
 
 const displayName = computed((): string => {
@@ -74,8 +71,8 @@ const isActive = (path: string): boolean => {
 
 const handleCommand = (command: string): void => {
   switch (command) {
-    case 'company':
-      router.push('/employer/company')
+    case 'profile':
+      router.push('/employer/profile')
       break
     case 'logout':
       userStore.logout()
@@ -109,23 +106,11 @@ $nav-text: #00b85c;
 .logo {
   cursor: pointer;
   margin-right: $spacing-2xl;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 
   .logo-text {
     font-size: $body-lg;
     color: #00b85c;
     letter-spacing: 3px;
-  }
-
-  .logo-badge {
-    font-size: 11px;
-    color: #fff;
-    background: rgba(0, 184, 92, 0.2);
-    border: 1px solid rgba(0, 184, 92, 0.4);
-    padding: 1px 6px;
-    border-radius: 4px;
   }
 }
 

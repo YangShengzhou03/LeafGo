@@ -65,6 +65,7 @@ defineOptions({
 
 .container {
   max-width: 1246px;
+  min-height: 50vh;
   margin: 0 auto;
   padding: 24px;
 }

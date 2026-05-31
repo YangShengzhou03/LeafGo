@@ -84,6 +84,22 @@ public class CompanyController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping
+    public ResponseEntity<ApiResponse<Company>> createCompany(@RequestBody Company company) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(401).body(ApiResponse.error("请先登录"));
+        }
+        
+        if (companyRepository.findByUserId(userId).isPresent()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("您已创建过企业"));
+        }
+        
+        company.setUserId(userId);
+        Company savedCompany = companyRepository.save(company);
+        return ResponseEntity.ok(ApiResponse.success("企业创建成功", savedCompany));
+    }
+
     @GetMapping("/{id}/jobs")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getCompanyJobs(
             @PathVariable Long id,

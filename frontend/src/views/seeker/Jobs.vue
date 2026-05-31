@@ -109,7 +109,10 @@
         </div>
 
         <div class="job-detail">
-          <div v-if="selectedJob" class="detail-content">
+          <div v-if="jobs.length === 0 && !loading" class="empty-detail">
+            <el-empty description="暂无符合条件的职位" />
+          </div>
+          <div v-else-if="selectedJob" class="detail-content">
             <div class="detail-header">
               <div class="detail-title-row">
                 <div class="title-left">
@@ -185,7 +188,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Star, StarFilled, Location } from '@element-plus/icons-vue'
 import SeekerNavBar from '@/components/SeekerNavBar.vue'
@@ -200,6 +203,7 @@ defineOptions({
 })
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const loading = ref(false)
@@ -259,8 +263,10 @@ const fetchJobs = async (): Promise<void> => {
     jobs.value = result.content
     total.value = result.totalElements
 
-    if (jobs.value.length > 0 && !selectedJob.value) {
+    if (jobs.value.length > 0) {
       await selectJob(jobs.value[0])
+    } else {
+      selectedJob.value = null
     }
   } catch (error) {
     console.error('Failed to fetch jobs:', error)
@@ -400,6 +406,10 @@ const goToCompany = (job: Job): void => {
 }
 
 onMounted(() => {
+  const keyword = route.query.keyword as string
+  if (keyword) {
+    searchKeyword.value = keyword
+  }
   fetchJobs()
 })
 </script>
